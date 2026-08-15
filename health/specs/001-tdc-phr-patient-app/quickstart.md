@@ -1,0 +1,65 @@
+# Quickstart: TDC PHR Prototype
+
+Stand up the demo world and walk the golden path. Prototype-grade; commands are
+indicative until the scaffolds land.
+
+## Prerequisites
+- Node + Expo CLI, Python 3.11, Postgres.
+- Android device/emulator (primary) or web target.
+- 2 physical NTAG 424 cards + 1 spare (for the full card beat).
+
+## 1. Core API (Django/DRF)
+```bash
+cd core-api
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python seed_demo.py            # rebuilds Rohan / Asha / Prakash demo world
+python manage.py runserver 0.0.0.0:8000
+```
+`DEMO_MODE=1` enables mock OTP `000000`.
+
+## 2. Fastlane (FastAPI)
+```bash
+cd fastlane
+uvicorn main:app --host 0.0.0.0 --port 8100
+```
+Serves `GET /e/{uid}` from the `emergency_payload` snapshot. In production this
+is `https://e.thedoorstepclinic.com`.
+
+## 3. App (Expo RN)
+```bash
+cd app
+npm install
+npx expo start            # press 'a' for Android, 'w' for web
+```
+Point the API client at the Core API host; ensure the device is on the same
+network (or use the hotspot fallback).
+
+## 4. Reset between demos (Principle V)
+```bash
+cd core-api && python seed_demo.py     # one command, instant clean state
+```
+
+## Golden path (5-minute script)
+1. Launch → login as Rohan (OTP `000000`).
+2. Home shows Rohan / Asha / Prakash.
+3. Tap **Asha** → seeded timeline. Camera-upload a paper Rx → appears live.
+4. **Health Summary** → renders → share PDF via WhatsApp.
+5. **Meds** → Metformin schedule; 8pm reminder fires; stock "4 days left".
+6. **Money shot:** second logged-out phone taps Asha's card → responder page
+   in <2s (blood group, allergies, conditions, meds, contacts) → Rohan's and
+   Soham's phones buzz: *"Asha's emergency card was just scanned near Kothrud."*
+7. **Trust screen** → encrypted · stored in India · every access logged · you
+   control sharing.
+
+## Pre-demo checklist
+- ☐ `seed_demo.py` re-run · ☐ 2 cards written + spare · ☐ demo phone +
+  responder phone (NFC on, logged out) + Soham's phone · ☐ hotspot fallback ·
+  ☐ backup screen-recording · ☐ airplane-mode test.
+
+## Card personalization (D10)
+Write the SDM URL to each NTAG 424:
+`https://e.thedoorstepclinic.com/e/{uid}?ctr={counter}&cmac={cmac}` with SDM
+mirroring the counter + CMAC. Test-scan on 3+ Android phones before demo day
+(NFC read variability is a top risk).
