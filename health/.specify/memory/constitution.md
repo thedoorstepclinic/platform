@@ -7,7 +7,7 @@ ratify its own amended constitution post-funding. Principles here are binding
 on every spec, plan, and task under `specs/` until superseded.
 -->
 
-**Version:** 2.0.0 · **Ratified:** 2026-07-15 · **Last amended:** 2026-08-10
+**Version:** 2.0.1 · **Ratified:** 2026-07-15 · **Last amended:** 2026-08-15
 **Scope:** Principles I–IX govern Track A (investor-demo prototype).
 Principles X–XV are **compliance principles** and carry an explicit binding
 class each — some bind Track A now, some bind Track B while constraining what
@@ -121,8 +121,8 @@ screen we cannot defend.
 ### VII. Elderly-First Accessibility
 Primary users include elderly patients (60s+). Every screen MUST be readable
 at arm's length: large type, large tap targets, high contrast. The warm/calm
-palette (site blue `#4B83F2` family) and shadcn-style tokens via NativeWind are
-the design baseline. Concrete token values live in `docs/design-tokens.md`.
+palette (site blue `#4B83F2` family) and a semantic Flutter theme (`ThemeData`)
+are the design baseline. Concrete token values live in `docs/design-tokens.md`.
 
 ### VIII. Home Stays Quiet (NON-NEGOTIABLE once any new surface is proposed)
 No content feed, no health tips, no "trending," nothing that refreshes to
@@ -271,7 +271,7 @@ For external compliance facts (milestone definitions, WASA scope, Fidelius
 construction, FHIR IG version pins, statutory dates) see
 `docs/compliance-baseline.md`, which carries its own verification date.
 
-- **One codebase:** Expo React Native targeting Android + web. No iOS work.
+- **One codebase:** Flutter targeting Android + web. No iOS work.
 - **Two-service split, not one:** the emergency responder MUST live in a
   service physically separate from Core API, with its own uptime budget —
   this is what makes Principle I's "survives Core being down" guarantee real
@@ -353,3 +353,9 @@ re-ratify.
   `docs/compliance-baseline.md` so version pins and statutory dates can rot
   in one place instead of inside principle text. Added Development Workflow
   §6 (per-feature compliance checklists).
+- 2.0.1 (2026-08-15) — **PATCH: corrected a stale duplicated fact.** Principle
+  VII and Constraints & Standards both still said Expo React Native/NativeWind;
+  `CLAUDE.md` locked Flutter as the stack on 2026-08-15 (owner decision, see
+  its changelog) and this file hadn't followed. No principle changed — this is
+  exactly the kind of duplication-drift the 1.2.0 entry above already warned
+  about.

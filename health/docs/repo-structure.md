@@ -1,9 +1,16 @@
-# Repo structure — TDC Health monorepo
+# Repo structure — health/ product directory
 
-Status: **decided, not yet built.** The repo currently holds specs only; this
+Status: **decided, not yet built.** `health/` currently holds specs only; this
 document is the target layout D1 scaffolds into. It records decisions made
 before any code existed, because directory renames are free now and migrations
 are not.
+
+`health/` is a self-contained product directory inside the `platform`
+monorepo (see `platform/README.md`) — patient-app-scoped only. **TDC Doctor is
+not nested here**; it is its own top-level product directory,
+`platform/doctor/`, built independently when it actually starts (15 Aug 2026
+decision, see `CLAUDE.md` changelog). TDC Clinic is likewise its own top-level
+`platform/clinic/`.
 
 Authority: `CLAUDE.md` for names/IDs/domains, `.specify/memory/constitution.md`
 for principles. This file only covers layout, CI, and what may be shared.
@@ -21,10 +28,10 @@ specs/
 .specify/
 ```
 
-Three top-level units, two of them Python, one of them TypeScript. `apps/` is
-plural from day one even though there is one app: **TDC Doctor** (Track B,
-frozen) lands beside it later, and `apps/health/` is what makes that a no-op
-instead of a rename touching every import, CI path filter, and deploy config.
+Three top-level units, two of them Python (`core-api`, `fastlane`), one of
+them Dart/Flutter (`apps/health`). `apps/` stays plural for consistency with
+`services/`, even though `health/` scopes to a single app — there is no
+second app landing inside it.
 
 ## Why a monorepo at all
 

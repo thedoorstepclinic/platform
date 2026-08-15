@@ -1,9 +1,9 @@
 # TDC Health — Design Tokens
 
-Referenced by `CLAUDE.md` ("Tokens in /docs/design-tokens.md") and
-`008-navigation-app-shell`. These are the values the NativeWind/Tailwind
-config is generated from — **code reads this file's tokens, not ad hoc
-hexes.** shadcn-style semantic naming.
+Referenced by `CLAUDE.md` ("Tokens in docs/design-tokens.md") and
+`008-navigation-app-shell`. These are the values the Flutter theme
+(`ThemeData`) is generated from — **code reads this file's tokens, not ad hoc
+hexes.** Semantic naming, not raw hex references.
 
 Design stance (locked in `CLAUDE.md`): warm/calm, site-blue family, large
 type + tap targets for elderly users, every screen readable at arm's length.

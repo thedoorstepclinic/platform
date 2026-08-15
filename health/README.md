@@ -66,7 +66,7 @@ docs/
 **[001 — TDC PHR Patient App, Prototype](specs/001-tdc-phr-patient-app/spec.md)**
 (Track A) — the investor-demo prototype (display name: **TDC Health**).
 **Investor pitch: 16 Aug 2026**; meetup/social demos ahead of it. Seeded,
-demo-grade, Android + web from one Expo codebase.
+demo-grade, Android + web from one Flutter codebase.
 The story: *"A family's health, handled — even when the worst happens."*
 
 **[002 — Onboarding, Router & ABHA Linking](specs/002-onboarding-router-activation/spec.md)**
