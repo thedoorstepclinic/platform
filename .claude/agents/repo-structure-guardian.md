@@ -30,14 +30,14 @@ tdc-platform/
 │   ├── adr/                  # one ADR per architectural decision
 │   └── STATUS.md             # index: what's built, what's stale, what's next
 ├── apps/
-│   ├── patient/               # TDC Health — Flutter — in.thedoorstepclinic.health
+│   ├── health/                # TDC Health (patient app) — Flutter — in.thedoorstepclinic.health
 │   └── doctor/                 # TDC Doctor — Flutter — in.thedoorstepclinic.doctor
 ├── services/
 │   ├── core-api/              # Django/DRF + Celery + Postgres — system of record for patient data
 │   └── fastlane/              # FastAPI, independently deployable, own uptime budget, e.thedoorstepclinic.com
 ├── console/                   # TDC Console (spec only until both app prototypes ready; build deferred post-funding)
-├── infra/                     # DigitalOcean Bangalore (MVP) / AWS Mumbai (Phase 2) IaC
-├── tooling/                   # shared scripts, CI helpers
+├── infra/                     # supplementary, backend — DigitalOcean Bangalore (MVP) / AWS Mumbai (Phase 2) IaC
+├── tooling/                   # supplementary, backend — shared scripts, CI helpers
 └── .github/workflows/         # path-filtered Actions (pnpm + uv workspaces; no Nx/Turborepo/Bazel)
 ```
 

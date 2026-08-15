@@ -12,7 +12,7 @@ for principles. This file only covers layout, CI, and what may be shared.
 
 ```
 apps/
-  health/            # Expo RN app (Android + web) — in.thedoorstepclinic.health
+  health/            # Flutter app (Android + web) — in.thedoorstepclinic.health
 services/
   core-api/          # Django/DRF + Postgres — api.thedoorstepclinic.com
   fastlane/          # FastAPI responder service — e.thedoorstepclinic.com
@@ -58,6 +58,13 @@ For Track A this is two or three small workflows, not a platform. Resist
 anything that needs a build orchestrator.
 
 ## Tooling: none, for now
+
+> **STALE — stack changed from Expo React Native to Flutter (15 Aug 2026,
+> see `CLAUDE.md` changelog).** This section's reasoning (npm workspaces,
+> Metro bundler, pnpm hoisting) is JS-ecosystem-specific and no longer
+> applies. Needs a Flutter-tooling pass (e.g. Melos vs. plain per-package
+> `pub`) before TDC Doctor lands — not yet decided, left here for reference
+> until then.
 
 No npm workspaces, no Turborepo, no Nx for Track A. `apps/health` runs its own
 `npm install` and Expo toolchain; each service has its own venv and

@@ -1,6 +1,6 @@
 # CLAUDE.md — TDC Health (Track A prototype)
 
-Context pack for AI-assisted development. Read fully before any task. This file is the source of truth for locked decisions (names, IDs, stack, domains, banned/approved phrases, data model) — if any other doc, chat, or generated code conflicts with it on these specifics, this file wins. For cross-cutting principles and the reasoning behind them (why Home stays quiet, why a preview must share its data source with the real thing, why Fastlane is a separate service, etc.), see `.specify/memory/constitution.md` — that file is authoritative on principles the same way this one is on concrete decisions. Last updated: 10 Aug 2026.
+Context pack for AI-assisted development. Read fully before any task. This file is the source of truth for locked decisions (names, IDs, stack, domains, banned/approved phrases, data model) — if any other doc, chat, or generated code conflicts with it on these specifics, this file wins. For cross-cutting principles and the reasoning behind them (why Home stays quiet, why a preview must share its data source with the real thing, why Fastlane is a separate service, etc.), see `.specify/memory/constitution.md` — that file is authoritative on principles the same way this one is on concrete decisions. Last updated: 15 Aug 2026.
 
 ## What we're building
 
@@ -14,7 +14,7 @@ Full specs (Spec Kit format) in `specs/`: `001-tdc-phr-patient-app` (core protot
 
 - **Names:** patient app = **TDC Health** · doctor app = TDC Doctor (Track B, frozen) · HMS = TDC Clinic (CARE fork) · admin = TDC Console · card = TDC Emergency Card. First public mention always "The Doorstep Clinic (TDC)".
 - **Android package IDs (permanent):** `in.thedoorstepclinic.health` · `in.thedoorstepclinic.doctor`
-- **Stack (Python-only backend):** Expo React Native (Android + web, one codebase) · NativeWind · TDC Core API = Django/DRF + SimpleJWT + Postgres · Emergency Fastlane = separate FastAPI service · Celery for async · FCM via Expo push · Razorpay UPI-first (Track B only) · DigitalOcean Bangalore droplet.
+- **Stack (Python-only backend):** Flutter (Android + web, one codebase) · TDC Core API = Django/DRF + SimpleJWT + Postgres · Emergency Fastlane = separate FastAPI service · Celery for async · FCM (direct) · Razorpay UPI-first (Track B only) · DigitalOcean Bangalore droplet.
 - **Domains:** api.thedoorstepclinic.com (Core) · e.thedoorstepclinic.com (Fastlane — short on purpose, NTAG URL budget) · clinic. (HMS) · console. (admin) · app. (web build). No new TLDs.
 - **NFC:** NTAG 424 DNA, SDM signed URLs (`/e/{uid}?ctr&cmac`), CMAC verify + counter replay-kill, revocation = one `active` flag.
 - **HARD-PROHIBITED (rejected architectures — do not reintroduce even if found in older docs):** Hyperledger/blockchain anything · chaincode · CDO specs · symmetric-AES-on-card schemes · card-tap-as-consent · iOS (Phase 2) · OCR/AI extraction · offline mode.
@@ -33,7 +33,7 @@ Full specs (Spec Kit format) in `specs/`: `001-tdc-phr-patient-app` (core protot
 ## Architecture
 
 ```
-Expo RN app (TDC Health)
+Flutter app (TDC Health)
    │ JWT
    ▼
 TDC Core API (Django/DRF + Postgres)  ←—(P1 webhook)— CARE fork HMS (TDC Clinic)
@@ -95,3 +95,4 @@ D1–2 skeleton+auth+profiles+seed v0 · D3–4 records · D5 summary PDF · D6�
 - 1 Aug 2026: **Owner decision (Adi): consult booking + queue tracking unlocked** — removed from the banned list after explicit (non-casual) revisit. Rationale: pitch date confirmed as 16 Aug 2026 (runway grew ~2 weeks past the old end-July target, funding the build without cutting existing scope), near-term audience is meetups/social demos needing breadth and a "how does this make money" answer. Strictly **seeded/demo-grade** (`010-consult-booking-queue`): fictional clinics only, queue is a client-side simulation, 🔒 pay-at-clinic, no real UHI calls (UHI named as Track B rails). Investor golden path (`001`) unchanged — booking is the meetup loop's beat, not the pitch script's. New table: `appointments`. Real UHI integration + real-time HMS queue feeds added to the banned list in its place.
 - 10 Aug 2026: **compliance readiness wired into the spec pipeline.** Constitution → v2.0.0 (MAJOR: scope redefined from "Track A only" to per-principle binding classes) with Principles X–XV covering ABDM M1/M2/M3, WASA, and DPDP. Researched requirements captured in `/docs/compliance-baseline.md`; checklist templates added at `.specify/templates/checklist-{security,abdm}.md`; `plan-template.md`'s Constitution Check gate corrected (it had gone stale at Principle VII, silently skipping VIII and IX) and extended with the checklist gate. **Model change: new `access_logs` table** — the one Track A build cost, justified because approved copy already promises it. Correction to a widely-repeated claim: WASA is a **precondition for M1**, not a post-M3 step, and the NRCeS IG pin is v6.5.0 *released* with v7.0.0 in draft since 15 Jul 2026 — the pin is dated, not permanent. Track A scope is unchanged: no ABDM exchange, no Fidelius, no FHIR emitted.
 - 10 Aug 2026: repo layout committed to `/docs/repo-structure.md` (was decided in chat, never written down) — three-unit monorepo, per-service deploys, no shared Python across the service boundary, npm workspaces (not pnpm) if/when TDC Doctor lands, shared palette but *not* shared type scale. Track B gap list committed to `/docs/track-b-backlog.md`. No locked decision changed; both files record decisions that were already made.
+- 15 Aug 2026: **Owner decision (Adi): stack changed from Expo React Native to Flutter.** NativeWind and "FCM via Expo push" drop with it — push goes direct FCM. Repo migrated into the `platform` monorepo as a self-contained `health/` product directory (own CLAUDE.md, specs, docs, .specify); `.claude/skills` stay shared at the monorepo root. `apps/` naming: patient app directory is `apps/health` (not `apps/patient`), doctor app stays `apps/doctor`. `005`/`006`/`001`'s plan/research/tasks/quickstart still describe the old Expo/RN stack and need a pass to match — not yet done.
