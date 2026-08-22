@@ -1,6 +1,8 @@
 # Feature Specification: TDC PHR Patient App — Investor-Demo Prototype (Track A)
 
-**Feature Branch:** `001-tdc-phr-patient-app`
+**Feature:** `001-tdc-phr-patient-app` (directory-scoped; trunk-based on
+`main` — no per-feature git branch exists post-monorepo-migration, see
+`plan.md` for detail)
 **Created:** 2026-07-15
 **Status:** Active
 **Owner:** Adi (dev) / Soham (demo)
@@ -96,7 +98,7 @@ phone — including the worst-case emergency — in under five minutes.
 | 2 | Family profiles + assisted add | Caregiver-grant recorded to `caregiver_grants` log — **this IS the consent moment** |
 | 3 | Record upload (camera/gallery) + type tag (Rx / Lab / Discharge / Other) + timeline | No OCR — store image/PDF + manual title. *"Digitize the plastic bag"* |
 | 4 | One-page Health Summary per profile → share as PDF | Template render from structured fields + record list; **not AI-generated** |
-| 5 | Medications: schedule, local reminder notifications, stock countdown | Expo local notifications; low-stock badge at ≤5 days |
+| 5 | Medications: schedule, local reminder notifications, stock countdown | Flutter local notifications; low-stock badge at ≤5 days |
 | 6 | Emergency profile: blood group, allergies, conditions, meds, ABHA no. (text field), 2+ contacts | Per profile |
 | 7 | Card link + revoke: bind NTAG 424 UID to profile; active flag kill-switch | Revocation = one toggle |
 | 8 | Responder page (Fastlane, server-rendered) | The crown-jewel screen — see §Emergency Card Flow |
@@ -106,19 +108,28 @@ phone — including the worst-case emergency — in under five minutes.
 ### P1 — build ONLY if P0 is done (cut bottom-up per slip rule)
 - **Consult booking + seeded queue tracking** (`010` — unlocked 1 Aug 2026,
   meetup-demo driver; seeded/fictional only, not in the investor golden path).
+- **Care discovery** (`011` — specced 20 Aug 2026: find-care screen, clinic
+  information page, seeded ~10-clinic directory). Step 1 of `010`'s flow, so
+  it builds immediately before it and pauses with it. Same fences: profile-
+  context entry only, no Home surface, seeded everything.
 - HMS→app vertical slice (Rx created in CARE fork lands in timeline; shared
   DB/webhook fake is acceptable).
-- ABHA M1 create-via-Aadhaar (**only** if sandbox creds arrive in time;
-  otherwise the field stays manual).
+- ABHA M1 create-via-Aadhaar — sandbox creds **arrived** (2026-08-17); the
+  condition that gated this is resolved, so it's buildable if P0 time
+  allows. Still P1 (cut bottom-up first if a day slips) — the field stays
+  manual if it doesn't get built.
 - Marathi toggle on responder page.
 - Test-scan celebration screen (shareable moment).
 
 ### Out of scope — do not build, do not fake beyond a lock icon
 Payments/paywall (show 🔒 "Family Plan" badge max; 🔒 "pay at clinic" inside
 booking) · OCR/AI extraction · ABDM M2/M3 data exchange · **real UHI
-integration** (seeded booking per `010` only) · iOS · offline mode · real
-auth hardening · doctor-app features · pet profiles · **real-time HMS queue
-feeds** (`010`'s queue is a seeded simulation).
+integration** (seeded booking + seeded directory per `010`/`011` only) · iOS ·
+offline mode · real auth hardening · doctor-app features · pet profiles ·
+**real-time HMS queue feeds** (`010`'s queue is a seeded simulation) ·
+**symptom search** (rejected 20 Aug 2026 — medical inference, and it would put
+health complaints in search logs) · written reviews/review counts · any browse
+destination reachable without first choosing a profile (Principle VIII).
 
 ---
 
@@ -146,7 +157,7 @@ feeds** (`010`'s queue is a seeded simulation).
     [`007-emergency-profile-card-consent`](../007-emergency-profile-card-consent/spec.md).
 12. **Trust/security screen** — static, approved copy.
 
-**Design system:** shadcn-style tokens via NativeWind; warm/calm patient palette
+**Design system:** shared Flutter `ThemeData` tokens; warm/calm patient palette
 (site blue `#4B83F2` family); large type + tap targets (elderly users); every
 screen readable at arm's length.
 
@@ -300,6 +311,30 @@ minutes.
 - **FR-019** *(P1)*: An Rx created in the CARE-fork HMS MUST be able to appear
   in the corresponding profile's timeline (shared DB / fake webhook acceptable).
 - **FR-020** *(P1)*: The responder page MUST support an EN/MR language toggle.
+- **FR-021** *(P0, cross-cutting — added 2026-08-17, constitution Principle
+  XI `[A]`)*: The system MUST emit one `access_logs` row — actor, subject
+  profile, action, object type + id, timestamp, purpose, source service —
+  for every PHI read or write through Core API or Fastlane, written in the
+  same transaction as the access it records; a failed log write MUST fail
+  the request. Distinct from `scan_events` (card mechanics only). This is
+  what makes the Trust screen's "every access is logged" claim (FR-016,
+  Principle VI) literally true rather than aspirational. Design in
+  `data-model.md` §access_logs and `contracts/core-api.md` §Access Logging;
+  built by `tasks.md` T006/T025.
+- **FR-022** *(P0, cross-cutting — added 2026-08-17, constitution Principle
+  X `[A]`)*: Every Core API endpoint touching `profiles`, `records`,
+  `medications`, `emergency_profiles`, `cards`, or `scan_events` MUST derive
+  its result set server-side from the authenticated caller — the caller's
+  own profiles union profiles reachable through an unrevoked
+  `caregiver_grants` row — never from a client-supplied id, header, or body
+  field. An endpoint returning an unfiltered/unscoped result set is a build
+  failure, not a review comment. Revoking a grant MUST deny access on the
+  very next request (no cached scope). A request for a resource outside the
+  caller's scope and a request for a nonexistent resource MUST be
+  indistinguishable to the caller (see FR-015's analogous rule for Fastlane;
+  Core API's error conventions collapse both to `404`, corrected
+  2026-08-17). Design in `contracts/core-api.md` §Authorization Scoping and
+  `research.md` R9; built by `tasks.md` T005.
 
 ### Non-Functional Requirements
 - **NFR-001 (Perf):** Responder page < 2s on 4G.
@@ -324,9 +359,12 @@ minutes.
   abha_no.
 - **emergency_contacts** — profile, name, phone, relation, priority.
 - **cards** — uid, profile, sdm_key_ref, last_ctr, active.
-- **scan_events** — card, ctr, ts, ip, geo.
+- **scan_events** — card, ctr, ts, ip, geo, `is_test`.
 - **emergency_payload** — denormalized snapshot per card/profile, read by
   Fastlane (derived, not a primary source of truth).
+- **access_logs** — actor, subject profile, action, object type + id, `ts`,
+  purpose, source service (the audit trail — FR-021, distinct from
+  `scan_events`).
 
 Full field-level detail in [`data-model.md`](./data-model.md).
 
@@ -347,7 +385,7 @@ who sees what" · "every access is logged" · "built on India's ABDM framework
 
 | Day | Work |
 |-----|------|
-| D1–2 | Expo skeleton, auth, profiles + grants, seed script v0 |
+| D1–2 | Flutter skeleton, auth, profiles + grants, seed script v0 |
 | D3–4 | Records upload + timeline + detail |
 | D5 | Health summary + PDF share |
 | D6–7 | Meds + reminders + stock |
@@ -375,7 +413,10 @@ the emergency flow.
 **Top risks**
 - NFC read variability across phones → test on 3+ devices by D10.
 - FCM latency on stage → pre-warm connection; video backup.
-- Sandbox creds not arriving → ABHA stays a text field (already the plan).
+- ~~Sandbox creds not arriving → ABHA stays a text field~~ — **RESOLVED:**
+  sandbox creds arrived 2026-08-17. ABHA M1 is now buildable in P1 (see
+  Scope); the manual-field fallback remains the plan only if it doesn't get
+  built in time.
 
 ---
 
