@@ -139,11 +139,13 @@ camera-upload beat on the physical Android demo phone, never on web.
 
 ## Build Note (not a requirement — flagged for D3 planning)
 
-The Android scan capability is a native module (e.g.
-`react-native-document-scanner-plugin`, wrapping Google ML Kit Document
-Scanner). This requires an **EAS custom dev client** for local
-development and testing — Expo Go alone cannot run this screen. Doesn't
-change scope, but affects the D3 local-dev setup and should be sorted
+**Updated 2026-08-15 for the Flutter stack** (was written against Expo RN).
+The Android scan capability is a native integration — a Flutter plugin or
+platform channel wrapping Google ML Kit's Document Scanner — not a pure-Dart
+package. Flutter has no Expo-Go/custom-dev-client split (`flutter run`
+always builds against the full native project), so the old dev-client
+caveat no longer applies; the only real D3 setup item is confirming the
+chosen plugin/channel builds cleanly on the target Android SDK version
 before D3 work starts, not discovered mid-sprint.
 
 ---
@@ -152,7 +154,7 @@ before D3 work starts, not discovered mid-sprint.
 | Decision | Owner | Notes |
 |---|---|---|
 | Max pages per multi-page record | Adi | Uncapped for Track A (trust the happy path); revisit only if it becomes a real demo problem. |
-| Exact native scanner library/version | Adi | `react-native-document-scanner-plugin` is the leading candidate; confirm during a short D3 spike. |
+| Exact native scanner library/version | Adi | A Flutter plugin or platform channel wrapping Google ML Kit Document Scanner (e.g. `google_mlkit_document_scanner` or an equivalent) is the leading candidate; confirm during a short D3 spike. |
 | Page-reorder interaction (drag vs. up/down buttons) in "Choose from files" multi-image combine | Adi | Implementation detail — doesn't change the behavior contract above. |
 
 ---
@@ -167,7 +169,7 @@ before D3 work starts, not discovered mid-sprint.
 ### Requirement Completeness
 - [x] Requirements testable (two vs. one entry point by platform, one-file-per-record invariant, nothing persists before explicit Save).
 - [x] Native-module build implication flagged ahead of the sprint it affects.
-- [x] Dependencies/assumptions identified (ML Kit Document Scanner availability, EAS dev client).
+- [x] Dependencies/assumptions identified (ML Kit Document Scanner availability, target Android SDK version for the plugin/channel).
 
 ## Execution Status
 - [x] Scenarios defined

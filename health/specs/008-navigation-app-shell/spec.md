@@ -13,10 +13,19 @@ so no navigation decisions are improvised at build time.
 
 ## What this is / is NOT
 
-**IS:** The route map (expo-router file structure), the navigation model
-(what's a tab, what's a stack, what's a sheet), the deep-link contract for
-every notification, and the app-wide screen-state conventions (loading /
-error / empty).
+**IS:** The route map (`go_router` route tree — see routing-library note
+below), the navigation model (what's a tab, what's a stack, what's a sheet),
+the deep-link contract for every notification, and the app-wide screen-state
+conventions (loading / error / empty).
+
+> **Updated 2026-08-15 for the Flutter stack** (was written against Expo RN
+> and `expo-router`). Routing library: **`go_router`** — Flutter's
+> team-maintained router, chosen because it's declarative and supports
+> nested/shell routes and path params the same way `expo-router` did, so the
+> navigation *model* below (two-level, no tab bar, segmented profile context)
+> carries over unchanged. This is a new technical decision this pass is
+> introducing, not a previously-locked one — flag if a different router is
+> preferred before D1 scaffolding.
 
 **IS NOT:** Per-screen content (owned by `001`–`007`) or visual design
 values (owned by `docs/design-tokens.md`).
@@ -43,36 +52,52 @@ ever"), and elderly-first means fewer persistent controls, not more.
    add/edit, refill, upload tagging. Sheets for quick actions, full-screen
    modals for multi-step flows.
 
-## Route map (expo-router)
+## Route map (`go_router`)
 
 ```
-app/
-├── (auth)/
-│   ├── login.tsx              # S1 Splash/Login (009): phone → OTP → in
-│   └── who-for.tsx            # Router question (002) — Track B; stub in Track A
-├── (app)/
-│   ├── index.tsx              # S2 Home: family cards + alerts strip
-│   ├── family.tsx             # S11 Family & consent (007)
-│   ├── settings.tsx           #     Settings (utility, 009)
-│   ├── trust.tsx              # S12 Trust screen (009)
-│   └── profile/[profileId]/
-│       ├── _layout.tsx        #     Profile context: header + segmented control
-│       ├── index.tsx          # S3 Timeline (records segment, default) (005)
-│       ├── upload.tsx         # S4 Capture/tagging — full-screen modal (005)
-│       ├── record/[recordId].tsx  # S5 Record detail (005)
-│       ├── summary.tsx        # S6 Health Summary (009 + 004 field map)
-│       ├── meds/
-│       │   ├── index.tsx      # S7 Meds segment: today's checklist + stock (006)
-│       │   ├── [medId].tsx    # S8 Med add/edit ('new' = create) — modal (006)
-│       │   └── slot/[time].tsx#     Dose-occasion checklist — sheet (006)
-│       ├── emergency.tsx      # S9 Emergency editor + preview (007)
-│       ├── card.tsx           # S10 Card manager + scan log (007)
-│       ├── book.tsx           #     Consult booking: clinic→slot→confirm (010, P1)
-│       └── appointment/[apptId].tsx  # Appointment detail + seeded queue view (010, P1)
+/login                              # S1 Splash/Login (009): phone → OTP → in
+/who-for                            # Router question (002) — Track B; stub in Track A
+
+ShellRoute (authenticated app shell — persistent header, no tab bar)
+├── /                               # S2 Home: family cards + alerts strip
+├── /family                         # S11 Family & consent (007)
+├── /settings                       #     Settings (utility, 009)
+├── /settings/trust                 # S12 Trust screen (009)
+└── /profile/:profileId             # Profile context: header + segmented control
+    ├── (index)                     # S3 Timeline (records segment, default) (005)
+    ├── /upload                     # S4 Capture/tagging — full-screen modal (005)
+    ├── /record/:recordId           # S5 Record detail (005)
+    ├── /summary                    # S6 Health Summary (009 + 004 field map)
+    ├── /meds                       # S7 Meds segment: today's checklist + stock (006)
+    ├── /meds/:medId                # S8 Med add/edit ('new' = create) — modal (006)
+    ├── /meds/slot/:time            #     Dose-occasion checklist — sheet (006)
+    ├── /emergency                  # S9 Emergency editor + preview (007)
+    ├── /card                       # S10 Card manager + scan log (007)
+    ├── /book                       #     Find care: search + specialty + clinic list (011, P1)
+    ├── /book/:clinicId             #     Clinic information page (011, P1)
+    ├── /book/:clinicId/doctors     #     Choose doctor — sheet (011, P1)
+    ├── /book/:clinicId/:docId/slots   #  Slot grid (010, P1)
+    ├── /book/:clinicId/:docId/confirm # Confirm + token + 🔒 pay at clinic (010, P1)
+    └── /appointment/:apptId        # Appointment detail + seeded queue view (010, P1)
 ```
+
+`ShellRoute` keeps Home's header persistent across the profile-context
+routes without introducing a bottom tab bar; modals/sheets (`upload`, med
+add/edit, dose checklist) are pushed as full-screen or sheet routes per the
+Navigation model above, not separate shell branches.
 
 All 12 numbered screens (`001`) have exactly one route. No screen is
 reachable two ways with two different back behaviors.
+
+**Booking sub-tree note (`010` + `011`, 20 Aug 2026):** the `/book` sub-tree is
+the one place where a single feature spans two specs — `011` owns find-care,
+the clinic page and the doctor sheet; `010` owns slots, confirm and the
+appointment. It stays a linear push stack: every screen's back goes one step
+up the funnel, and the profile context (`profileId`) is carried the whole way
+so the "who is this for" header never disappears. The doctor sheet is a sheet,
+not a shell branch, per the Navigation model above. There is **no** route into
+this sub-tree that does not start at a profile — that is `011` FR-001 and it
+is what keeps discovery out of Home (Principle VIII).
 
 ## Deep-link contract
 

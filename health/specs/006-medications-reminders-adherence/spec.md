@@ -109,8 +109,8 @@ supply, Home warns me so I can refill before she runs out.
 
 ## Reminders
 
-- **One local notification per dose slot per day** (Expo local
-  notifications), repeating daily. A profile with breakfast + dinner meds
+- **One local notification per dose slot per day** (`flutter_local_notifications`),
+  repeating daily. A profile with breakfast + dinner meds
   gets two daily notifications, each opening that slot's bundled checklist —
   not a single all-day digest, and not one-per-drug.
 - Tapping a reminder deep-links straight to that slot's checklist (satisfies
