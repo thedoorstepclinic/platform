@@ -3,6 +3,12 @@
 Prototype schema. Track B will re-model for production (encryption-at-rest
 detail, DPDP retention, audit tables). Types are indicative.
 
+**Replanned 2026-08-15:** added `access_logs` (Principle XI, `[A]`-binding —
+already named in `CLAUDE.md`'s global data model, wired into `001` here).
+Every other entity is unchanged from the original schema; access **scoping**
+(Principle X) is an authorization rule enforced in `contracts/core-api.md`'s
+Authorization Scoping section, not a schema change.
+
 ## Entities
 
 ### users
@@ -95,6 +101,12 @@ detail, DPDP retention, audit tables). Types are indicative.
 | ts | timestamptz | |
 | ip | inet | |
 | geo | string null | coarse location if scanner shared it |
+| is_test | bool | true for a test-scan (`007`): single-use server-minted URL, blast labeled "Test", chip counter left untouched — distinguishes it from a real scan in the scan log |
+
+Added 2026-08-17: `is_test` was already locked in `CLAUDE.md`'s global data
+model and specced in `007-emergency-profile-card-consent`, but `001`'s own
+schema had drifted and never picked it up — closed by a `checklists/
+security.md` review.
 
 ### emergency_payload  *(denormalized snapshot — read by Fastlane)*
 Derived, not a source of truth. Refreshed on save of the profile's emergency
@@ -111,6 +123,24 @@ profile, meds, or contacts.
 | abha_no | string | |
 | updated_at | timestamptz | |
 
+### access_logs  *(Principle XI — the audit trail, distinct from `scan_events`)*
+| Field | Type | Notes |
+|-------|------|-------|
+| id | uuid PK | |
+| actor_user_id | uuid FK → users, null | null for anonymous Fastlane reads |
+| subject_profile_id | uuid FK → profiles | whose PHI was accessed |
+| action | enum | read / write |
+| object_type | string | e.g. "record", "emergency_payload", "medication" |
+| object_id | uuid | id of the accessed object |
+| ts | timestamptz | |
+| purpose | string | short reason, e.g. "profile_view", "emergency_scan" |
+| source_service | enum | core / fastlane |
+
+Written in the **same transaction** as the access it records; a failed log
+write fails the request (constitution, Principle XI). `scan_events` is not
+replaced by this table — that one records card mechanics (counter, replay
+state); this one records who saw what. Both are kept.
+
 ## Relationships (summary)
 ```
 users 1───* profiles 1───1 emergency_profiles
@@ -119,6 +149,7 @@ profiles 1───* records
 profiles 1───* medications
 profiles 1───* emergency_contacts
 profiles 1───* cards 1───* scan_events
+profiles 1───* access_logs
 cards 1───1 emergency_payload   (denormalized snapshot)
 ```
 

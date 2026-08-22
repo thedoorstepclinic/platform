@@ -3,6 +3,12 @@
 Separate service · subdomain `e.thedoorstepclinic.com` · independent uptime
 budget · reads only the `emergency_payload` snapshot (never live Core joins).
 
+## Public-page hardening (Principle XIII, Track A clause)
+HTTPS-only. PHI appears only in the rendered HTML body — never in the query
+string (`ctr`/`cmac` are the only params), never in access/error logs, never
+in a `Referer`-leaking link. Every response (success and neutral page alike)
+sends `X-Robots-Tag: noindex`. See `research.md` R11.
+
 ## `GET /e/{uid}`  *(no auth, public)*
 
 ### Query params (SDM-mirrored by NTAG 424 DNA)
@@ -18,10 +24,15 @@ budget · reads only the `emergency_payload` snapshot (never live Core joins).
 3. Reject replay: if `ctr ≤ last_ctr` → neutral page. Else set `last_ctr = ctr`
    (FR-013).
 4. Load `emergency_payload[uid]` (snapshot only).
-5. Log `scan_event(uid, ctr, ts, ip, coarse_geo?)`.
+5. Log `scan_event(uid, ctr, ts, ip, coarse_geo?)` (card mechanics) **and**,
+   in the same transaction, write one `access_logs` row (`actor=null`,
+   subject profile = the card's bound profile, `action=read`,
+   `object_type=emergency_payload`, `source_service=fastlane`) — Principle
+   XI. Neutral-page responses (steps 1–3) write neither: no PHI was accessed.
 6. FCM blast to all family device tokens (coarse geo if present, omitted
    gracefully if not) (FR-014).
-7. Render server-side HTML, **zero JS required to read**, target **<2s on 4G**.
+7. Render server-side HTML, **zero JS required to read**, target **<2s on 4G**,
+   with `X-Robots-Tag: noindex` (Principle XIII).
 
 ### Success response — responder HTML render order
 1. **BLOOD GROUP** — largest element on the page.

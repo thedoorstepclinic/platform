@@ -1,16 +1,19 @@
 # Quickstart: TDC PHR Prototype
 
 Stand up the demo world and walk the golden path. Prototype-grade; commands are
-indicative until the scaffolds land.
+indicative until the scaffolds land. **Replanned 2026-08-15:** paths and app
+commands updated for the Flutter stack and the `health/apps/`+`health/services/`
+monorepo layout (`docs/repo-structure.md`), replacing the earlier Expo RN /
+flat-repo-root version.
 
 ## Prerequisites
-- Node + Expo CLI, Python 3.11, Postgres.
+- Flutter SDK, Python 3.11, Postgres.
 - Android device/emulator (primary) or web target.
 - 2 physical NTAG 424 cards + 1 spare (for the full card beat).
 
 ## 1. Core API (Django/DRF)
 ```bash
-cd core-api
+cd health/services/core-api
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
@@ -21,24 +24,24 @@ python manage.py runserver 0.0.0.0:8000
 
 ## 2. Fastlane (FastAPI)
 ```bash
-cd fastlane
+cd health/services/fastlane
 uvicorn main:app --host 0.0.0.0 --port 8100
 ```
 Serves `GET /e/{uid}` from the `emergency_payload` snapshot. In production this
 is `https://e.thedoorstepclinic.com`.
 
-## 3. App (Expo RN)
+## 3. App (Flutter)
 ```bash
-cd app
-npm install
-npx expo start            # press 'a' for Android, 'w' for web
+cd health/apps/health
+flutter pub get
+flutter run -d android          # or: flutter run -d chrome (web target)
 ```
 Point the API client at the Core API host; ensure the device is on the same
 network (or use the hotspot fallback).
 
 ## 4. Reset between demos (Principle V)
 ```bash
-cd core-api && python seed_demo.py     # one command, instant clean state
+cd health/services/core-api && python seed_demo.py     # one command, instant clean state
 ```
 
 ## Golden path (5-minute script)
