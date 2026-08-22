@@ -3,7 +3,10 @@
 **Feature Branch:** `003-abdm-sync-subscription`
 **Version:** 0.2 · **Created:** 2026-07-15 (v0.1 uploaded doc) · **Revised:** 2026-07-15
 **Status:** Draft — Track B, Sprint 4+ (post-funding). Zero code before the
-tenant-isolation audit (Sprint 1) and ABDM sandbox credentials exist.
+tenant-isolation audit (Sprint 1) passes — ABDM sandbox credentials arrived
+2026-08-17 (see `CLAUDE.md` changelog), so that half of the prerequisite is
+satisfied, but Sprint 1 (post-funding) has not started, so this feature
+remains gated.
 **Owner:** Adi (dev) / Soham (copy sign-off)
 **Depends on:** [`002-onboarding-router-activation`](../002-onboarding-router-activation/spec.md) —
 this spec begins where a profile's ABHA is already `verified` / `linked` /
@@ -194,9 +197,10 @@ family/caregiver join).
 | Auto-approve policy support | CM policy flows | Sprint 5 |
 | TDC-as-HIP publishing (own HMS records outbound) | M2 | parallel track, separate spec |
 
-Prereqs, hard: sandbox credentials · Sprint 1 tenant-isolation audit passed ·
-pyfidelius validated against sandbox (CARE issue #1871 path) · webhook
-receiver endpoints on api.thedoorstepclinic.com with signature verification.
+Prereqs, hard: ~~sandbox credentials~~ **arrived 2026-08-17** · Sprint 1
+tenant-isolation audit passed · pyfidelius validated against sandbox (CARE
+issue #1871 path) · webhook receiver endpoints on api.thedoorstepclinic.com
+with signature verification.
 
 ## 7. Expectation management (deck + UX honesty)
 
