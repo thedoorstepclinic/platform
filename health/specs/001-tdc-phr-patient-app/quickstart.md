@@ -4,7 +4,10 @@ Stand up the demo world and walk the golden path. Prototype-grade; commands are
 indicative until the scaffolds land. **Replanned 2026-08-15:** paths and app
 commands updated for the Flutter stack and the `health/apps/`+`health/services/`
 monorepo layout (`docs/repo-structure.md`), replacing the earlier Expo RN /
-flat-repo-root version.
+flat-repo-root version. **Amended 2026-08-20:** the two services moved out of
+`health/` to `platform/services/` — core-api now serves every TDC client, not
+just the patient app (see `docs/repo-structure.md`). Commands below reflect the
+new paths.
 
 ## Prerequisites
 - Flutter SDK, Python 3.11, Postgres.
@@ -13,7 +16,7 @@ flat-repo-root version.
 
 ## 1. Core API (Django/DRF)
 ```bash
-cd health/services/core-api
+cd services/core-api
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
@@ -24,7 +27,7 @@ python manage.py runserver 0.0.0.0:8000
 
 ## 2. Fastlane (FastAPI)
 ```bash
-cd health/services/fastlane
+cd services/fastlane
 uvicorn main:app --host 0.0.0.0 --port 8100
 ```
 Serves `GET /e/{uid}` from the `emergency_payload` snapshot. In production this
@@ -41,7 +44,7 @@ network (or use the hotspot fallback).
 
 ## 4. Reset between demos (Principle V)
 ```bash
-cd health/services/core-api && python seed_demo.py     # one command, instant clean state
+cd services/core-api && python seed_demo.py     # one command, instant clean state
 ```
 
 ## Golden path (5-minute script)

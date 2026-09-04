@@ -17,7 +17,9 @@ must run reliably in 5 minutes and reset in one command.
 **Replan note:** This plan was regenerated on 2026-08-15 to (1) replace the
 Expo React Native / NativeWind stack with Flutter per `CLAUDE.md`'s
 2026-08-15 stack decision, (2) move the project layout under the monorepo's
-`health/apps/`, `health/services/` structure per `docs/repo-structure.md`,
+`health/apps/`, `health/services/` structure per `docs/repo-structure.md`
+(the services half of that move was superseded on 2026-08-20 — they now sit at
+`platform/services/`, see that file),
 and (3) close two Constitution Check gaps — Principle X (authorization
 scoping) and Principle XI (access logging) — that a `/speckit-analyze` pass
 found undesigned. `research.md`, `data-model.md`, `contracts/`, and
@@ -145,8 +147,8 @@ pattern for Principle X; same-transaction `access_logs` write for Principle XI.
   /e/{uid}`, now with the HTTPS-only/noindex/no-PHI-in-URL clause (Principle
   XIII) and the `access_logs` write on valid scans.
 - [`quickstart.md`](./quickstart.md) — stand-up + golden-path walkthrough,
-  updated to Flutter commands and the `health/apps/`, `health/services/`
-  paths.
+  updated to Flutter commands and, since 2026-08-20, the `health/apps/` +
+  `platform/services/` paths.
 
 **Constitution re-check after design:** ✅ — snapshot isolation preserved, no
 card-tap-as-consent surface introduced, and the two principles that were
@@ -157,7 +159,7 @@ for Phase A/B/C.
 
 ## Phase 2 — Task Planning Approach
 `tasks.md` is derived from the spec's build order (D1–D12), regenerated
-against this plan's Flutter stack, `health/apps/`+`health/services/` layout,
+against this plan's Flutter stack, `health/apps/`+`platform/services/` layout,
 and the new authorization-scoping and access-logging design. Tasks are
 grouped Setup → Data/Contracts → P0 features (in golden-path order) →
 Fastlane/card → P1 → polish. Anything on the emergency flow is never

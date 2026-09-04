@@ -5,12 +5,20 @@ document is the target layout D1 scaffolds into. It records decisions made
 before any code existed, because directory renames are free now and migrations
 are not.
 
-`health/` is a self-contained product directory inside the `platform`
-monorepo (see `platform/README.md`) — patient-app-scoped only. **TDC Doctor is
-not nested here**; it is its own top-level product directory,
-`platform/doctor/`, built independently when it actually starts (15 Aug 2026
-decision, see `CLAUDE.md` changelog). TDC Clinic is likewise its own top-level
-`platform/clinic/`.
+`health/` is a self-contained **client product** directory inside the
+`platform` monorepo (see `platform/README.md`). **TDC Doctor is not nested
+here**; it is its own top-level product directory, `platform/doctor/`, built
+independently when it actually starts (15 Aug 2026 decision). TDC Clinic is
+likewise its own top-level `platform/clinic/`.
+
+**Amended 20 Aug 2026 — services moved out of `health/`.** `health/` was
+"patient-app-scoped only" and held `services/core-api/` and
+`services/fastlane/` inside it. That stopped being true the moment TDC Core
+API became the directory owner for every client (`011-care-discovery`): a
+service the doctor app calls cannot live inside the patient app's product
+directory without giving `doctor/` an upward dependency into `health/`.
+Services now sit at `platform/services/`. `health/` keeps its app, specs and
+docs, and is now scoped to **the patient client**, not to the patient stack.
 
 Authority: `CLAUDE.md` for names/IDs/domains, `.specify/memory/constitution.md`
 for principles. This file only covers layout, CI, and what may be shared.
@@ -18,20 +26,60 @@ for principles. This file only covers layout, CI, and what may be shared.
 ## Layout
 
 ```
-apps/
-  health/            # Flutter app (Android + web) — in.thedoorstepclinic.health
-services/
-  core-api/          # Django/DRF + Postgres — api.thedoorstepclinic.com
-  fastlane/          # FastAPI responder service — e.thedoorstepclinic.com
-docs/
-specs/
-.specify/
+platform/
+  services/                # shared, client-agnostic
+    core-api/              # Django/DRF + Postgres — api.thedoorstepclinic.com
+    fastlane/              # FastAPI responder — e.thedoorstepclinic.com
+  health/                  # TDC Health (this product directory)
+    apps/
+      health/              # Flutter app — in.thedoorstepclinic.health
+    docs/  specs/  .specify/
+  doctor/                  # TDC Doctor (Flutter client, not started)
+  clinic/                  # TDC Clinic — specs/docs only; source in its own repo
 ```
 
-Three top-level units, two of them Python (`core-api`, `fastlane`), one of
-them Dart/Flutter (`apps/health`). `apps/` stays plural for consistency with
-`services/`, even though `health/` scopes to a single app — there is no
-second app landing inside it.
+**TDC Clinic's source repo is [`thedoorstepclinic/tdc-care`](https://github.com/thedoorstepclinic/tdc-care)**
+(forked from CARE 30 Aug 2026, default branch `develop`). `platform/clinic/`
+is the specs-and-docs stub this document promised; it is now created. The fork
+is never vendored in — a copied fork cannot cleanly merge from an actively
+developed upstream, which is the whole reason for the exception.
+
+`health/` is now one unit: the Flutter client plus its specs and docs. `apps/`
+stays plural even though it scopes to a single app — there is no second app
+landing inside it.
+
+## Every app is a client (20 Aug 2026 decision)
+
+**TDC Core API owns the data. TDC Health, TDC Doctor, and any future client
+consume it over HTTP and own no tables of their own.** This was already true
+in practice for records, meds and profiles; it became a stated rule when the
+care-discovery directory (`011`) needed to be readable by both the patient app
+and the eventual doctor app.
+
+Concretely:
+- **No client-local directory tables, no client-local caches presented as
+  data.** If TDC Doctor needs the clinic list, it calls
+  `GET /api/v1/clinics` — the same endpoint TDC Health calls, with the same
+  shape. A second implementation is a second source of truth.
+- **No client talks to another client's backend**, and no client reads
+  Postgres directly. Fastlane is the single exception to the "one API" shape,
+  and it is a *reader* of a snapshot table, not a client — that separation is
+  Principle I and it stands.
+- **Directory endpoints are client-agnostic**: no response field may vary by
+  which app asked. If the doctor app needs a different projection, that is a
+  new endpoint, not a branch inside an existing one.
+
+### Track B: core-api aggregates, one API out
+
+Track A seeds the directory locally. In Track B, core-api becomes the
+**aggregation point**, not the sole author: it ingests TDC's own facilities
+from TDC Clinic (the CARE fork) and external providers from UHI / HFR / HPR,
+and still serves one directory API to every client. Rows carry `source`
+(`seed` | `tdc_clinic` | `uhi`) and `external_ref` (HFR facility id / HPR
+professional id). Clients never learn where a row came from — that opacity is
+what keeps them clients.
+
+Track A writes only `source = seed`, `# DEMO-MODE` tagged per Principle XIV.
 
 ## Why a monorepo at all
 

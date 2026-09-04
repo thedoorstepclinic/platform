@@ -6,7 +6,8 @@
 P1 polish** (Constitution Principle I).
 
 **Regenerated 2026-08-15** against the replanned `001` (Flutter stack,
-`health/apps/health/` + `health/services/{core-api,fastlane}/` layout, full
+`health/apps/health/` + `platform/services/{core-api,fastlane}/` layout
+(services moved out of `health/` on 2026-08-20 — see `docs/repo-structure.md`), full
 Constitution Check gate). Replaces the Expo-era task list. New in this
 revision: authorization-scoping (T005) and access-logging (T006) foundation
 tasks closing Principles X/XI, an `X-Robots-Tag: noindex` requirement on the
@@ -18,9 +19,9 @@ tracing to gaps a `/speckit-analyze` pass found open in the prior version.
 - [ ] T001 [Setup] Scaffold Flutter app (`health/apps/health/`): `pubspec.yaml`,
   app shell, `ThemeData` tokens with site-blue `#4B83F2` palette, large
   type/tap targets (Principle VII).
-- [ ] T002 [Setup] Scaffold Core API (`health/services/core-api/`) Django/DRF +
+- [ ] T002 [Setup] Scaffold Core API (`platform/services/core-api/`) Django/DRF +
   Postgres + SimpleJWT; `DEMO_MODE` flag.
-- [ ] T003 [Setup] Scaffold Fastlane (`health/services/fastlane/`) FastAPI
+- [ ] T003 [Setup] Scaffold Fastlane (`platform/services/fastlane/`) FastAPI
   service + templates.
 - [ ] T004 [P] [Data] Implement models per `data-model.md`: users, profiles,
   caregiver_grants, records, medications, emergency_profiles,

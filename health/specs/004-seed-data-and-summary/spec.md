@@ -44,6 +44,40 @@ invent new ones per-record):
 - **Prabhat Multispecialty Hospital** — the Nov-2025 hypoglycemia discharge.
 - **Kavya Family Clinic** — Prakash's prescribing clinic.
 
+### Care-discovery directory (`011`, added 20 Aug 2026)
+
+`011-care-discovery` needs a browsable directory, so the four names above are
+no longer the whole set — they are the **record-bearing** facilities and stay
+locked as such. The directory extends the set with roughly six more bookable
+clinics, under the same rule and two extensions of it.
+
+- **Bookable clinics reuse three of the four:** Sunrise Poly Clinic, Prabhat
+  Multispecialty Hospital, Kavya Family Clinic. **Ashirwad Diagnostics is a
+  lab and MUST NOT appear as a bookable consult clinic** — a lab offering
+  consultations is a data-model lie the demo doesn't need.
+- **~7 new fictional clinic names** are required to reach ~10. They are
+  **not yet approved**: the candidate list lives in `011`'s Open Decisions and
+  each name must be checked against real Pune facilities before it lands here.
+  Until that check returns, this section is the blocker, not `011`.
+- **Extension 1 — imagery.** The rule now covers pictures, not just names: no
+  clinic or doctor image may depict an identifiable real facility or a real
+  practising clinician (`011` FR-010). A stock photo of an actual hospital
+  is the same leak by another route.
+- **Extension 2 — coordinates.** `011` seeds real lat/lng per clinic for its
+  map. A seeded pin MUST NOT land on a real healthcare facility (`011`
+  FR-011) — pinning a fictional clinic onto a real hospital asserts an
+  address as well as a name, which is worse than the Ruby Hall leak, not
+  better.
+
+Also seeded by `011`: ~10 specialties (4 primary chips + the *More* set,
+including **Diabetology** so Asha's follow-up is a natural demo path), 2–4
+doctors per clinic with one `is_lead`, seeded ratings in a 4.2–4.9 band,
+facility tags, 3–5 FAQs per clinic, and slots for the next 3 days.
+**Slots MUST be generated relative to run date**, never fixed timestamps —
+a reseed on demo morning must not produce yesterday's availability.
+Dr. Kavya must exist as a real seeded doctor row (she is already named in
+`010`'s alerts-strip example copy).
+
 ---
 
 ## Seeded profiles
@@ -206,8 +240,11 @@ this field order is what she's reviewing, not a placeholder.
   of times without creating duplicate rows (delete-and-recreate or upsert
   semantics), per `001` FR-017.
 - **FR-002**: All facility names in seed data MUST be fictional (see
-  Guardrail above); this is enforced by using only the four standard
-  fictional facilities listed, not ad hoc names.
+  Guardrail above); this is enforced by using only the approved fictional
+  facility set — the four record-bearing names plus `011`'s approved
+  directory additions — never ad hoc names. Extended 20 Aug 2026 to cover
+  clinic/doctor **imagery** (`011` FR-010) and seeded **coordinates**
+  (`011` FR-011), not just names.
 - **FR-003**: Asha MUST have exactly 2 active meds, both at the 20:00 slot
   (Metformin `stock_count = 4`, threshold 5; Sitagliptin healthy stock), so
   the 8pm reminder opens a bundled two-item checklist (`006`), only Metformin
@@ -219,14 +256,20 @@ this field order is what she's reviewing, not a placeholder.
   show HbA1c trending from 8.1% to 6.9% across the Lab records in date
   order.
 - **FR-005**: Any change to the `records`, `medications`, `dose_events`,
-  `emergency_profiles`, or `scan_events` models MUST be reflected in
-  `seed_demo.py` the same day (per `CLAUDE.md` working conventions) — a
+  `emergency_profiles`, `scan_events`, `clinics`, `doctors`, `specialties`,
+  or `slots` models MUST be reflected in `seed_demo.py` the same day (per `CLAUDE.md` working conventions) — a
   stale seed script is treated as a broken build, not a follow-up task.
 - **FR-007**: Asha's card MUST be seeded with exactly one test scan event
   (`is_test = true`, dated the card-link day) and no non-test scan events.
 - **FR-008**: `appointments` (`010`) MUST be seeded **empty** — booking live
   is the meetup demo beat — and re-running `seed_demo.py` MUST clear any
-  appointments booked during a demo.
+  appointments booked during a demo. The `011` directory tables are the
+  opposite: they MUST be fully seeded, because they are inventory rather than
+  user data.
+- **FR-009**: `011`'s `slots` MUST be generated relative to the seed run date,
+  never as fixed timestamps, so a reseed on demo morning yields future
+  availability (this is NFR-001's determinism applied to a moving reference
+  point — same relative shape every run, not the same absolute instants).
 - **FR-006**: The Health Summary PDF MUST render the seven sections above in
   the specified order, sourced only from structured fields and the record
   list (no free-text AI summarization).

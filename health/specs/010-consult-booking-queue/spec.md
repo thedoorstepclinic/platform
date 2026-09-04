@@ -12,6 +12,14 @@ is ever reverted, this spec reverts with it.
 fences) · [`008`](../008-navigation-app-shell/spec.md) (routes, states) ·
 [`004`](../004-seed-data-and-summary/spec.md) (fictional facilities, seed
 ripple).
+**Amended by:** [`011-care-discovery`](../011-care-discovery/spec.md)
+(20 Aug 2026) — discovery became step 1 of this flow. Three changes land here:
+the entry sequence gains a find-care screen, a clinic page and a doctor step
+(FR-002 rewritten); the `appointments` copied strings become foreign keys now
+that a real directory exists; and the clinic list this spec described as
+"seeded list of 3 fictional clinics" is superseded by `011`'s ~10-clinic seeded
+directory. Everything else in this spec — the fences, the queue simulation, the
+🔒 pay-at-clinic badge, the two-script model — is unchanged.
 
 ## Why this exists (be honest with ourselves)
 
@@ -27,9 +35,10 @@ Two audiences, two jobs:
 
 ## What this is / is NOT
 
-**IS:** A seeded, demo-grade booking flow (pick a fictional clinic → pick a
-slot → confirm) and a simulated live-queue view on the resulting
-appointment. Everything renders from local seed data.
+**IS:** A seeded, demo-grade booking flow (find a fictional clinic → pick a
+doctor → pick a slot → confirm; discovery steps owned by `011`) and a
+simulated queue view on the resulting appointment. Everything renders from
+local seed data.
 
 **IS NOT — hard fences, restated from the unlock:**
 - **No real UHI calls.** UHI is named in copy as the intended rails
@@ -60,12 +69,17 @@ of another surface — no snapshot-sharing obligation triggered.
 1. **Entry:** Profile context → "Book consultation" (placed with Health
    Summary in the profile's action row — per `008`, one route:
    `/profile/[id]/book`).
-2. **Pick clinic:** seeded list of 3 fictional clinics (reuse `004`'s
-   set: Sunrise Poly Clinic, Kavya Family Clinic, Prabhat Multispecialty)
-   with specialty + distance labels. One screen, one choice.
-3. **Pick slot:** seeded next-3-days slot grid. One screen, one choice.
-4. **Confirm:** summary card — who (profile), where, when, token number
-   assigned, 🔒 "Pay at clinic" — single Confirm button.
+2. **Find care & pick clinic:** `011` owns this — search, specialty chips and
+   a distance-sorted clinic list at `/profile/[id]/book`, then the clinic
+   information page at `/profile/[id]/book/[clinicId]`. *(Superseded: this
+   spec originally specified a bare list of 3 clinics.)*
+2b. **Pick doctor:** `011` owns this — a sheet at
+   `/profile/[id]/book/[clinicId]/doctors`. One screen, one choice.
+3. **Pick slot:** seeded next-3-days slot grid at
+   `/profile/[id]/book/[clinicId]/[doctorId]/slots`. One screen, one choice.
+4. **Confirm:** summary card — who (profile), where, **which doctor**, when,
+   token number assigned, 🔒 "Pay at clinic" — single Confirm button. Route:
+   `/profile/[id]/book/[clinicId]/[doctorId]/confirm`.
 5. **Appointment lives on the profile** (`/profile/[id]/appointment/[apptId]`)
    and in the Home alerts strip while upcoming.
 6. **Queue view (the meetup money-shot):** appointment detail shows
@@ -81,7 +95,8 @@ of another surface — no snapshot-sharing obligation triggered.
 - The simulation is deterministic per seed so rehearsals behave identically
   (same `004` NFR-001 spirit).
 - `seed_demo.py` seeds **zero** appointments — booking live *is* the meetup
-  beat, and an empty state costs nothing because the flow is 3 taps.
+  beat, and an empty state costs nothing because the flow is 5 taps
+  (3 before `011` added discovery and the doctor step).
 - Reset returns everything to unbooked.
 
 ---
@@ -95,8 +110,8 @@ applied same-day per Workflow rule 5):
 |---|---|
 | id | PK |
 | profile FK | who the visit is for |
-| clinic_name / doctor_name / specialty | copied fictional strings, no clinic table in Track A |
-| slot_ts | timestamptz |
+| ~~clinic_name / doctor_name / specialty~~ | **superseded by `011`** — copied strings replaced by `clinic` FK · `doctor` FK · `slot` FK now that a real seeded directory exists. Track B should snapshot provider details at booking time; Track A deliberately does not (see `011` *Data model*). |
+| slot_ts | timestamptz — mirrors the chosen `slots` row |
 | token_no | int, assigned at booking from seed |
 | status | `upcoming` \| `done` \| `cancelled` |
 
@@ -107,10 +122,12 @@ Queue simulation state is **not persisted** — derived client-side from
 
 - **FR-001**: Booking MUST be reachable only from a profile context —
   no Home-level or nav-level services entry point.
-- **FR-002**: The flow MUST be exactly: clinic → slot → confirm (one
-  decision per screen), ending in an `appointments` row.
+- **FR-002**: *(Amended by `011` FR-005, 20 Aug 2026.)* The flow MUST be
+  exactly: find care → clinic → doctor → slot → confirm (one decision per
+  screen), ending in an `appointments` row. The first three steps are `011`'s;
+  slot and confirm are this spec's.
 - **FR-003**: All clinics/doctors MUST be fictional, drawn from `004`'s
-  standard facility set.
+  standard facility set as extended by `011`'s seed ripple.
 - **FR-004**: Confirmation MUST show 🔒 "Pay at clinic" and MUST NOT
   collect or simulate payment.
 - **FR-005**: An upcoming appointment MUST appear in the Home alerts strip
@@ -121,9 +138,10 @@ Queue simulation state is **not persisted** — derived client-side from
   roadmap-pattern copy ("built for India's UHI network — integration in
   development") if referenced at all.
 - **FR-008**: `seed_demo.py` seeds no appointments; reset clears any booked
-  during a demo (`001` FR-017 extension).
+  during a demo (`001` FR-017 extension). Unchanged by `011` — the *directory*
+  is seeded, appointments are not.
 - **FR-009**: Booking MUST NOT appear in the `001` golden-path script; the
-  meetup script owns it (Soham).
+  meetup script owns it (Soham). Extended by `011` FR-020 to cover discovery.
 
 ## Build placement
 
@@ -136,6 +154,7 @@ emergency-flow polish is touched — slip rule unchanged). If P0 slips past
 | Decision | Owner | Notes |
 |---|---|---|
 | Meetup script beat order (card first or booking first?) | Soham | Lean card first — it's the differentiator; booking answers the follow-up. |
+| Beat length now that discovery is in front | Soham | The flow went from 3 taps to 5. Still short, but the clinic page invites browsing mid-demo — decide whether the script pauses on it or drives through. |
 | Simulated queue pacing (tokens/min) | Adi | Fast enough to visibly tick in a 30-second show-and-tell. |
 
 ## Review & Acceptance Checklist

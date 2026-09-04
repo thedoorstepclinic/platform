@@ -13,7 +13,7 @@ Node color key: **router** (the one branching decision) · **decision**
 outcome).
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#FFFFFF','primaryBorderColor':'#52606F','primaryTextColor':'#121A22','lineColor':'#52606F','fontFamily':'ui-monospace, SFMono-Regular, Consolas, monospace','fontSize':'13px','edgeLabelBackground':'#FFFFFF'}}}%%
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#FFFFFF','primaryBorderColor':'#3194ff','primaryTextColor':'#52a6fb','lineColor':'#1c85f5','fontFamily':'ui-monospace, SFMono-Regular, Consolas, monospace','fontSize':'13px','edgeLabelBackground':'#FFFFFF'}}}%%
 flowchart TD
     A["Open app"] --> B["Phone number + OTP"]
     B --> C{"Account created?"}
@@ -62,10 +62,10 @@ flowchart TD
     V --> H
 
     classDef router fill:#2F5FC4,stroke:#1E3F87,color:#FFFFFF,stroke-width:2px
-    classDef decision fill:#E8F0FC,stroke:#2F5FC4,color:#121A22,stroke-width:1.5px
-    classDef terminal fill:#E3F3E9,stroke:#1F7A4C,color:#121A22,stroke-width:1.5px
-    classDef deferred fill:#FBF0D9,stroke:#9A6B08,color:#121A22,stroke-width:1.5px
-    classDef async fill:#F1F2F6,stroke:#52606F,color:#121A22,stroke-width:1px,stroke-dasharray:4 3
+    classDef decision fill:#E8F0FC,stroke:#2F5FC4,color:#3194ff,stroke-width:1.5px
+    classDef terminal fill:#E3F3E9,stroke:#1F7A4C,color:#3194ff,stroke-width:1.5px
+    classDef deferred fill:#FBF0D9,stroke:#9A6B08,color:#3194ff,stroke-width:1.5px
+    classDef async fill:#F1F2F6,stroke:#3194ff,color:#3194ff,stroke-width:1px,stroke-dasharray:4 3
 
     class D router
     class C,F,M,P decision
@@ -77,7 +77,7 @@ flowchart TD
 ## Diagram 2 — ABHA & sync state
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#FFFFFF','primaryBorderColor':'#52606F','primaryTextColor':'#121A22','lineColor':'#52606F','fontFamily':'ui-monospace, SFMono-Regular, Consolas, monospace','fontSize':'13px'}}}%%
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#FFFFFF','primaryBorderColor':'#3194ff','primaryTextColor':'#3194ff','lineColor':'#3194ff','fontFamily':'ui-monospace, SFMono-Regular, Consolas, monospace','fontSize':'13px'}}}%%
 stateDiagram-v2
     [*] --> NoABHA
     NoABHA --> AadhaarOTPPending: enters Aadhaar number
@@ -103,7 +103,7 @@ stateDiagram-v2
 ## Diagram 3 — Revoke
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#FFFFFF','primaryBorderColor':'#52606F','primaryTextColor':'#121A22','lineColor':'#52606F','fontFamily':'ui-monospace, SFMono-Regular, Consolas, monospace','fontSize':'13px'}}}%%
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#FFFFFF','primaryBorderColor':'#3194ff','primaryTextColor':'#3194ff','lineColor':'#3194ff','fontFamily':'ui-monospace, SFMono-Regular, Consolas, monospace','fontSize':'13px'}}}%%
 flowchart LR
     A2["Family & Consent screen"] --> B2["Select profile"]
     B2 --> C2["Toggle: stop automatic sync"]
@@ -111,8 +111,8 @@ flowchart LR
     D2 --> E2["Revoke standing consent artifacts"]
     E2 --> F2(("Local records retained — stated on screen"))
 
-    classDef danger fill:#FBE8E6,stroke:#B2382F,color:#121A22,stroke-width:1.5px
-    classDef terminal fill:#E3F3E9,stroke:#1F7A4C,color:#121A22,stroke-width:1.5px
+    classDef danger fill:#FBE8E6,stroke:#B2382F,color:#3194ff,stroke-width:1.5px
+    classDef terminal fill:#E3F3E9,stroke:#1F7A4C,color:#3194ff,stroke-width:1.5px
 
     class C2,D2,E2 danger
     class F2 terminal
