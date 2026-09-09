@@ -95,6 +95,53 @@ camera-upload beat on the physical Android demo phone, never on web.
 
 ---
 
+## All Records — cross-profile list & search (added 9 Sep 2026)
+
+From a supplied reference. The timeline this spec owns is **per profile** and
+stays that way. What it lacked is the surface for the question a caregiver
+actually asks: *"where is that prescription?"* — asked about a family, not
+about a person.
+
+**Route:** `/records` (app-shell level, not profile-scoped).
+
+| Element | Behaviour |
+|---|---|
+| **Header** | *"Medical Records — manage and review your family's health documents."* |
+| **Search** | Free text over record **title and type**. Debounced, server-side. **Not** over document contents — there is no OCR and no extraction (this spec's hard prohibition). |
+| **Filter** | The existing type chips: Rx · Lab · Discharge · Other. |
+| **Record card** | Type icon, **type chip**, title, **`Person · date`**, and an action naming what opens (`View Report` / `View Image`). |
+| **Empty / loading / error** | `008`'s four states, with an empty-search state naming the recovery action. |
+
+### Scope is the existing derivation, not a new one
+
+Owner decision, 9 Sep 2026: *"if the member is family owner, then he should be
+able to — or has been given access to."* So this list shows **the caller's own
+profiles ∪ profiles reachable through an unrevoked `caregiver_grants` row** —
+the same queryset derivation every other profile-scoped endpoint already uses
+(`001` FR-022, Principle X). It introduces **no new authorization concept**: an
+account owner sees their family because they hold the grants, and a
+grant-holder sees exactly what they were granted.
+
+Consequences that must be built, not assumed:
+
+- **Revoking a grant removes those rows on the very next request.** No cached
+  scope, same as everywhere else.
+- **Every row names its person.** A record card without attribution is the
+  wrong-patient error waiting to happen, and this is the one screen in the app
+  where records from different people sit side by side. Person is **not**
+  optional metadata here — it is part of the identity of the row.
+- **`access_logs` on read**, like every other PHI surface (Principle XI).
+
+**Principle VIII is not in tension here.** VIII prohibits content feeds and
+attention-harvesting surfaces — a browse destination for *inventory* the user
+does not own. This lists the user's own family's documents, in response to a
+search they typed. It has nothing to refresh for, nothing recommended, and no
+one else's data in it. The profile-first rule that `012` FR-001 enforces for
+*discovery* is about not browsing clinics without a patient in context; it was
+never a rule that a caregiver cannot see their own family's files in one place.
+
+---
+
 ## Requirements
 
 ### Functional Requirements
@@ -128,6 +175,17 @@ camera-upload beat on the physical Android demo phone, never on web.
   (no trash/undo) — see Open Decisions; a production undo window is worth revisiting now that deletion is permanent for real users, not demo data.
 - **FR-010**: A saved record MUST appear in the profile timeline
   immediately, newest-first (unchanged from `001` FR-005/006).
+
+- **FR-012**: An app-level **All Records** list MUST exist at `/records`,
+  MUST derive its queryset from the caller's own profiles ∪ unrevoked
+  `caregiver_grants` (Principle X, `001` FR-022), MUST reflect a revoked grant
+  on the next request, and MUST write an `access_logs` row on read.
+- **FR-013**: Every row in the All Records list MUST name the person the record
+  belongs to. Attribution is not optional metadata on this surface — it is what
+  prevents the wrong-patient error that a mixed list otherwise invites.
+- **FR-014**: Record search MUST operate over **title and type only**. It MUST
+  NOT search, index, or extract document contents — no OCR, no content
+  extraction, by any technique (this spec's standing prohibition).
 
 ### Non-Functional Requirements
 - **NFR-001 (On-device capture):** Document detection/cropping happens

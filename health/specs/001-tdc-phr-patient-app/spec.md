@@ -145,11 +145,23 @@ the `001`-local view.
 - **In scope for the product, gated externally:** real UHI integration and
   ABDM M2/M3 — each names its gate and owner in its owning spec.
 - **Prohibited on independent grounds:** OCR/AI extraction · iOS · offline mode
-  (all HARD-PROHIBITED, `CLAUDE.md`) · pet profiles · any browse destination
+  (all HARD-PROHIBITED, `CLAUDE.md`) · **pet profiles** · any browse destination
   reachable without first choosing a profile (Principle VIII).
 - **Repealed from this list:** *"real auth hardening"* — now in scope
   (constitution v3.0.0). *"Real-time HMS queue feeds"* — in scope; we own the
   CARE fork. *"Payments/paywall beyond a lock icon"* — in scope via `012`.
+**Pets — re-proposed and re-rejected, 9 Sep 2026.** A supplied reference set
+included pet profiles with vaccination schedules, boosters, and a vet
+directory. **Owner decision: stays out.** Recorded with the reasoning so it is
+not re-litigated from the mockups alone: it is not one more profile type. It
+needs a vaccination-schedule model with due dates and boosters, vets in the
+clinic directory, a vet booking path, and its own reminder class — a second
+product inside the app, competing for the same ~4h/day while eleven human-side
+features still have no `plan.md`. It also runs non-human data through a model
+built on `caregiver_grants`, emergency cards and ABHA, none of which mean
+anything for a dog. If it returns, it returns as its own spec, sequenced after
+the human features — not as a field on `profiles`.
+
 - **Pending an owner decision** (`CLAUDE.md` §Scope): symptom search (still
   rejected — medical inference, and health complaints in search logs) and
   written reviews (the fabricated-corpus objection dissolves once the directory

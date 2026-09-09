@@ -34,7 +34,14 @@ values (owned by `docs/design-tokens.md`).
 
 ## Navigation model
 
-> **Re-affirmed 9 Sep 2026.** A supplied reference design for `012`'s Queue
+> **Re-affirmed twice, 9 Sep 2026.** Two separate reference sets carried a bottom
+tab bar — `012`'s Queue Status (Status · Clinics · History · Profile) and a
+records set (Dashboard · Records · Visits · Pets). **Both rejected**, same
+reasoning, plus: `Pets` is out of scope entirely (`001`), `Visits` is a
+profile-context screen (`012` B8), and `Records` is reachable from the app
+shell without needing a permanent slot. The first re-affirmation, in full:
+
+**Re-affirmed 9 Sep 2026.** A supplied reference design for `012`'s Queue
 > Status screen carried a bottom tab bar (Status · Clinics · History · Profile).
 > **Rejected, owner decision:** the tab bar is not adopted and the **Clinics tab
 > is not built** — a browse destination reachable without choosing a patient is
@@ -68,6 +75,7 @@ ever"), and elderly-first means fewer persistent controls, not more.
 ShellRoute (authenticated app shell — persistent header, no tab bar)
 ├── /                               # S2 Home: family cards + alerts strip
 ├── /family                         # S11 Family & consent (007)
+├── /records                        #     All Records: cross-profile search + list (005)
 ├── /settings                       #     Settings (utility, 009)
 ├── /settings/trust                 # S12 Trust screen (009)
 └── /profile/:profileId             # Profile context: header + segmented control
@@ -80,6 +88,7 @@ ShellRoute (authenticated app shell — persistent header, no tab bar)
     ├── /meds/slot/:time            #     Dose-occasion checklist — sheet (006)
     ├── /emergency                  # S9 Emergency editor + preview (007)
     ├── /card                       # S10 Card manager + scan log (007)
+    ├── /visits                     # B8 Visit History — completed appointments (012)
     ├── /alert/:scanEventId         # S13 Emergency Alert — family blast target (007)
     ├── /book                       # B1 Find care: search + specialty + clinic list (012)
     ├── /book/:clinicId             # B2 Clinic page + fee line (012)

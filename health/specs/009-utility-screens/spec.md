@@ -60,6 +60,31 @@ Purpose: the "show this to any doctor in 60 seconds" one-pager, on screen.
 - Loading: skeleton of the section layout; generation failure: standard
   error + retry (`008`).
 
+### Summary header and family cards (added 9 Sep 2026)
+
+From a supplied "Medical Summary" reference. Two additions:
+
+**Action header.** `My Summary` alongside **PDF** and **Share** as peer
+actions. `004`'s field mapping and Principle IX are untouched — both actions
+render the same mapping the screen shows; Share is `share_plus` over the PDF
+that PDF produces, not a second document.
+
+**Family record cards.** Below the summary, one card per profile in scope:
+initial avatar, name, **age**, **blood group**, and a one-line latest entry.
+
+- **Blood group on the card is deliberate.** It is the first thing anyone needs
+  in an emergency and the field most likely to be stale, so putting it where a
+  caregiver sees it routinely is how it stays correct. It is the user's own
+  family's data, already entered by them (`007` emergency profile).
+- **The latest-entry line MUST come from a clinic, or be omitted.** The
+  reference shows *"Latest: Annual Checkup — Normal."* **"Normal" is a clinical
+  interpretation**, and TDC does not make those: if a clinic wrote an outcome,
+  render it and attribute it; otherwise show the visit or record without a
+  verdict, or show nothing. Deriving "Normal" from our own data is medical
+  inference — the same rule that keeps symptom search rejected.
+- Cards are scoped by the standard derivation (own profiles ∪ unrevoked
+  grants), like every other multi-profile surface.
+
 ## Screen 12 — Trust
 
 Purpose: the positioning, in the app. Static content, approved copy only —
@@ -112,6 +137,14 @@ preferences, no theme toggle, no notification settings
 - **FR-005**: The Health Summary screen MUST render the same fields in
   the same order as the `004` PDF mapping, derived entirely from
   structured data — no on-screen editing, no divergence from the PDF.
+- **FR-009**: The Health Summary screen MUST offer **PDF** and **Share** as
+  peer actions rendering the same `004` field mapping the screen displays —
+  never a second hand-maintained document (Principle IX).
+- **FR-010**: Family cards MUST show name, age and blood group, scoped to the
+  caller's own profiles ∪ unrevoked `caregiver_grants`.
+- **FR-011**: A latest-entry outcome (e.g. *"Normal"*) MUST be rendered only
+  when a clinic wrote it, and MUST be attributed. The system MUST NOT derive,
+  infer, or summarise a clinical outcome from its own data.
 - **FR-006**: Share-as-PDF MUST be the screen's single primary action,
   producing the `004`-mapped PDF via the OS share sheet.
 - **FR-007**: The Trust screen MUST contain only the five sections above,

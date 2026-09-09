@@ -393,6 +393,32 @@ changed and re-asking about them would be a decision the user did not make.
 book again. Reusing a reschedule flow to switch doctors would silently change
 who the visit is with while the screen says "reschedule".
 
+### B8 — Visit History (`/profile/:profileId/visits`) — added 9 Sep 2026
+
+**A visit is a completed appointment.** From a supplied "Visit History"
+reference. No new entity: `appointments` with `status = completed` already
+carries the clinic, the doctor, the date and a provider snapshot, so the
+narrative timeline the reference shows is a **view**, not a table.
+
+| Element | Behaviour |
+|---|---|
+| **Timeline** | Vertical rail, newest first, one card per completed visit. |
+| **Card** | Date chip · title (the reason or specialty) · clinic · doctor · a clinical summary paragraph. |
+| **Summary text** | **Written by the clinic, never by us.** It arrives with `completed` through the same TDC Clinic surface, and is rendered attributed. Where no summary was written, the card shows the visit without one — it does **not** get a generated line. |
+| **Empty** | *"No past visits yet."* Not an error, and not a prompt to book — Principle VIII. |
+
+**Why this is not a second records timeline.** `005`'s timeline holds
+**documents the user captured**; this holds **encounters the clinic recorded**.
+They answer different questions (*"where is the prescription"* vs *"what
+happened at that appointment"*) and have different authors. A visit links to
+any records attached to it; it does not absorb them.
+
+**A visit that TDC did not book has no row here.** The reference implies a
+complete clinical history; ours only knows about appointments made through the
+app. That gap is real and must not be papered over — the screen is *Visit
+History*, not *Medical History*, and copy must not imply completeness. Manual
+visit entry is a possible future feature and is **not** specced here.
+
 ### Screen states
 
 All seven implement `008`'s four states: skeleton cards while loading ·
@@ -835,6 +861,13 @@ Carried from `011`, plus this spec's additions:
 
 **Lifecycle**
 
+- **FR-043**: Visit History MUST render from `appointments` with
+  `status = completed` — no separate visits entity. A clinical summary MUST be
+  displayed only when the clinic wrote it, attributed, and MUST NOT be
+  generated, inferred, or summarised by TDC.
+- **FR-044**: Visit History copy MUST NOT imply a complete clinical history.
+  It shows visits TDC booked; visits arranged elsewhere are absent, and the
+  screen is named and worded so that absence is not read as "no visit".
 - **FR-016**: An appointment MUST have exactly one stored status from
   `requested` · `booked` · `declined` · `cancelled` · `rescheduled` ·
   `completed` · `no_show`. **This app MUST NOT write `completed` or
