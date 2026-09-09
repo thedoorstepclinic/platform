@@ -240,7 +240,9 @@ it that the override was missing.
 
 **`slots.is_booked` is a demo simplification and must be tagged as one.**
 Availability is genuinely owned by the clinic's HMS. In Track A, confirming a
-booking flips a local flag. In Track B, booking is a **request to TDC Clinic or
+booking flips a local flag. *(Superseded 9 Sep 2026: `012` auto-confirms
+against the clinic's own published capacity, and clinic/doctor cancellation
+closes the loop. The paragraph below is the historical framing.)* In Track B, booking is a **request to TDC Clinic or
 UHI that can be declined**, and a patient-side availability table that thinks
 it is authoritative is actively wrong — it will happily confirm a slot the
 clinic already filled. Nothing in Track A may be built on the assumption that

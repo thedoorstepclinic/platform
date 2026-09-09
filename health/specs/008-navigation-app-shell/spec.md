@@ -127,7 +127,7 @@ It renders the same date + period picker against an existing appointment, so it 
 the appointment rather than back inside `/book` — a reschedule that pushed the
 user back through the booking funnel would put Clinic and Doctor in their back
 stack as if they were still choosable, which they are not (`012` §B7: same
-doctor only). Its back goes to B6, never to B5.
+doctor only). Its back goes to B6, never into the booking funnel.
 
 ## Deep-link contract
 

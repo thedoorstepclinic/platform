@@ -86,6 +86,10 @@ Owner supplied a "Confirm Booking" reference. Four decisions taken:
 - Q: The "Booking for" switcher inside checkout? → A: **Switcher yes, "+ Add New" no.** Profile creation writes a `caregiver_grants` row — the consent moment — and must not sit inside a payment flow.
 - Q: Payments? → A: **Platform fee (₹50) confirmed** as a real, separately-labelled line. Pay-at-clinic was *not* settled by that answer; specced as `clinics.accepts_pay_at_clinic` pending confirmation (Open Decisions).
 
+### Session 2026-09-09 (clarify) — who confirms a booking
+
+- Q: When a patient confirms, who accepts or declines, and what does `012` do before a clinic-side worklist exists? → A: **Auto-book against published capacity.** If the TDC Clinic system says a slot exists, the booking is **immediately confirmed** — the clinic's published availability *is* the acceptance. Afterwards, **the clinic or the doctor may cancel**, and **the patient is notified**. That closes the loop without a pending state and without a worklist to staff.
+
 ---
 
 ## What this is / is NOT
@@ -139,32 +143,44 @@ Availability is owned by the clinic. Our copy of it — `capacity` and
 else's truth**, and a system that treats it as authoritative will cheerfully
 confirm a session the clinic closed an hour ago.
 
-**Resolution: booking is a request, and the clinic answers it.**
+**Resolution (owner decision, 9 Sep 2026): published capacity is the
+acceptance.**
 
-1. Confirming on B5 creates an appointment in **`requested`** and sends a
-   booking request to the owning system.
-2. **TDC Clinic** (the CARE fork — *we own it, there is no external gate*)
-   accepts or declines. Accept → **`booked`**. Decline → **`declined`**, with
-   the reason surfaced and alternative slots offered.
-3. Only after an accept does any surface say the appointment is confirmed.
+1. Availability comes from the clinic's own system. If TDC Clinic publishes a
+   session with room in it, that publication **is** the clinic saying yes.
+2. Booking into it therefore resolves **immediately to `booked`**. There is no
+   pending state, no worklist for someone to watch, and no request that can
+   rot.
+3. **The clinic or the doctor may cancel afterwards** — a session gets pulled,
+   a doctor is called away. That is a real event, it flows back to us, and
+   **the patient is notified**. See §Clinic-initiated cancellation.
 
-**The copy rule survives, and now it means something.** Between `requested` and
-`booked` the UI still says **"Booking requested"** — never *confirmed*,
-*reserved*, or *held* — because in that window nothing is. Once the clinic
-accepts, **"Confirmed" becomes true and may be used.** Yesterday's rule banned
-the word outright because it could never be earned; today it is earned by an
-actual acknowledgement.
+**This is what makes "Confirmed" honest.** The earlier draft banned the word
+outright because nothing on our side could ever earn it. Now it can: where the
+capacity is the clinic's own published data (`source = tdc_clinic`), a booking
+against it **is** confirmed and may say so. The ban survives exactly where the
+data does not — a `DEMO_MODE` fixture or an un-onboarded provider has published
+nothing, so "Booking placed" is the honest wording there. **Same per-row rule
+as the word "live": the copy follows the data, not the screen.**
 
-**Timeout is a state, not a silence.** A request unanswered past a bounded
-window (default 30 min, per-clinic) resolves to `declined` with a distinct
-reason — *"the clinic didn't respond"* — and the slot is released. A booking
-request that hangs forever is worse than one that fails: the patient plans
-around an appointment nobody has.
+**What this removes.** A pending `requested` state on the TDC Clinic path, the
+response-window timeout, and the `no_response` decline — none of which have a
+job any more, because nobody is being waited on. They stay in the model for a
+provider that genuinely requires confirmation before a booking is real; that is
+not TDC Clinic, and it is not the default path.
 
-**For providers reached through UHI** (`source = uhi`), the same request/accept
-shape applies over UHI's own protocol. That path is **GATED on UHI onboarding
-(owner: Adi)** — build the request/accept machinery once, against TDC Clinic,
-and UHI becomes a second transport rather than a second design.
+**What it does not remove.** Our `capacity` / `booked_count` is still a
+**cache** of the clinic's number. Booking is confirmed against what the clinic
+published, which is a much stronger claim than a local flag flip — but a stale
+cache can still oversell a session. Refresh on read, and treat a clinic-side
+cancellation as the correction mechanism rather than pretending it cannot
+happen.
+
+**For providers reached through UHI** (`source = uhi`), acceptance may
+genuinely be asynchronous — UHI's protocol, not ours. That is where the
+`requested` / `declined` states earn their place, and that path is **GATED on
+UHI onboarding (owner: Adi)**. The states exist in the model from day one so
+that adding UHI is a new transport rather than a new lifecycle.
 
 ---
 
@@ -235,7 +251,7 @@ type, arm's-length legibility. Top to bottom:
 | **App bar** | Back + clinic name. **Share icon: re-open.** It was dropped because a fictional clinic page had nowhere to go; a real clinic page is shareable. Owner: Adi — needs a share target and a no-PHI check first (a clinic page carries none, but the URL must not carry `profileId`). |
 | **Hero image** | Seeded clinic image (FR-025 governs sourcing). |
 | **Identity card** | Name · seeded star rating, no review count · lead doctor: name, `Senior Cardiologist • 15+ years`, seeded masked `HID: ****8821` chip. |
-| **Fee line** | **`Consultation ₹400 · 🔒 Pay at clinic`.** New in `012` — see §Payments. Shown here and again on B5, so the number is never a surprise at the confirm step. |
+| **Fee line** | **`Consultation ₹400`**, with `Pay at clinic` shown only where the clinic accepts it. New in `012` — see §Payments. Shown here and again on B5, so the number is never a surprise at the confirm step. |
 | **Location** | Interactive map on the clinic's seeded coordinates · fictional Pune address · **Directions** hands off to the OS maps app. |
 | **Other clinics nearby** | Horizontal rail, 3–4 cards, seeded-distance order. No See All. Tapping replaces the current clinic page. |
 | **Tabs** | **Facilities** (icon tiles: parking, wheelchair access, pharmacy, wi-fi, lift, lab) and **FAQ** (seeded Q&A). No Reviews tab. |
@@ -437,10 +453,10 @@ build against, so we can know.**
 
 | From | To | Trigger | Who owns it |
 |---|---|---|---|
-| — | `requested` | Patient confirms on B5 | Patient |
-| `requested` | `booked` | Clinic accepts | **Clinic** |
-| `requested` | `declined` | Clinic declines, or the response window expires | **Clinic**, or the timeout |
-| `booked` | `cancelled` | Patient cancels on B6, or the clinic cancels | Either side |
+| — | `booked` | Patient confirms on B4 against published capacity | Patient — the clinic's published availability is the acceptance |
+| — | `requested` | Same, for a provider that requires async confirmation (UHI) | Patient; **not the TDC Clinic path** |
+| `requested` | `booked` / `declined` | Provider answers, or the response window expires | Provider, or the timeout — **UHI path only** |
+| `booked` | `cancelled` | Patient cancels on B6, **or the clinic or doctor cancels** | Either side — see §Clinic-initiated cancellation |
 | `booked` | `rescheduled` | Patient moves it on B7 | Patient (re-enters `requested`) |
 | `booked` | `completed` | Visit happened | **Clinic** |
 | `booked` | `no_show` | Patient did not attend | **Clinic** |
@@ -473,6 +489,27 @@ answered within `clinics.response_window_min` (default 30) resolves to
 `declined` with reason `no_response`, and the slot is released. Surfaced to the
 patient plainly, with the alternative slots offered inline. Owner of the
 default: Adi.
+
+### Clinic-initiated cancellation (added 9 Sep 2026)
+
+A session gets pulled; a doctor is called away. This is the other half of the
+auto-book loop, and without it auto-booking would be a promise we cannot keep.
+
+- **It is a real state change, not a silent one.** Status → `cancelled` with
+  the acting side recorded (`cancelled_by` distinguishes patient, clinic and
+  doctor) and the clinic's reason carried through verbatim where given.
+- **The patient MUST be notified, and it MUST be a push.** Every other
+  appointment notification in this spec is a device-local schedule (`006`'s
+  primitive). This one is not: the trigger is server-side and unpredictable, so
+  it goes over **FCM**, which is already in the locked stack and already used
+  for the family blast. This is the only server-push in `012`, and it exists
+  because the alternative is a patient arriving at a clinic that is closed.
+- **The notification says what happened and what to do next** — who, when, why
+  if given, and a direct action to rebook. It must not read as an app error.
+- The slot is released, both local reminders are cancelled, the alerts-strip
+  and day-of entries clear, an `access_logs` row is written, and **any payment
+  is refunded in full including the platform fee** — the patient did nothing
+  wrong (FR-016c's reasoning, now reached by a second route).
 
 ### Cancellation
 
@@ -822,7 +859,7 @@ Carried from `011`, plus this spec's additions:
 
 - **FR-008**: The flow MUST be exactly **find care → clinic → doctor → slot →
   confirm**, one decision per screen, ending in an `appointments` row.
-- **FR-009**: B5 MUST display who, where, with whom, when, the token, the fee,
+- **FR-009**: B4 MUST display who, where, with whom, when, the fee,
   and the cancellation window before the Confirm action — not after it, and not
   behind a link.
 - **FR-010**: The system MUST NOT collect a reason for visit, a symptom, or any
@@ -873,13 +910,25 @@ Carried from `011`, plus this spec's additions:
   `completed` · `no_show`. **This app MUST NOT write `completed` or
   `no_show`** — both assert what only the clinic observed, and `no_show` is an
   accusation. They arrive from TDC Clinic or not at all.
-- **FR-016a**: Confirming on B5 MUST create the appointment in `requested` and
-  send a booking request to the owning system. No surface may describe the
-  appointment as confirmed until the clinic has accepted it.
-- **FR-016b**: A `requested` appointment unanswered within
-  `clinics.response_window_min` MUST resolve to `declined` with reason
-  `no_response`, release the slot, tell the patient plainly, and offer
-  alternative slots inline. A request MUST NOT hang indefinitely.
+- **FR-016a**: Confirming on B4 against a session the clinic has published with
+  available capacity MUST create the appointment **directly in `booked`** — the
+  published availability is the acceptance. The app MAY describe such an
+  appointment as confirmed. Where capacity is a `DEMO_MODE` fixture or the
+  provider has published nothing, the wording MUST remain "Booking placed".
+- **FR-016b**: `requested` / `declined` / `response_window_min` apply **only to
+  providers that require asynchronous confirmation** (UHI). They MUST NOT be
+  used on the TDC Clinic path, where nothing is being waited on. A `requested`
+  appointment on such a provider MUST NOT hang indefinitely.
+- **FR-016e**: A clinic- or doctor-initiated cancellation MUST set `cancelled`,
+  record which side acted, carry the clinic's reason through where given,
+  release the slot, cancel both local reminders, clear the alerts-strip and
+  day-of entries, write an `access_logs` row, and **refund any payment in full
+  including the platform fee**.
+- **FR-016f**: A clinic- or doctor-initiated cancellation MUST notify the
+  patient **by push (FCM)**, not by a device-local schedule — the trigger is
+  server-side and unpredictable. The notification MUST state who cancelled,
+  when the appointment was, the reason where given, and offer a direct rebook
+  action. This is the only server-push in this feature.
 - **FR-016c**: A paid booking that ends `declined` (including `no_response`)
   MUST be refunded automatically and in full.
 - **FR-016d**: Cancelling MUST propagate to the clinic. Releasing a slot only
@@ -1069,7 +1118,8 @@ Carried from `011`, plus this spec's additions:
 **Approved framing:**
 
 - "Booking placed" · "Booked" · "Queue status" · "about 40 min" ·
-  "~10 min wait" · "3 waiting" · "🔒 Pay at clinic" ·
+  "~10 min wait" · "3 waiting" · "Pay at clinic" (no lock — it is a real
+  option, not a locked one) ·
   "built for India's UHI network — integration in development".
 
 ---

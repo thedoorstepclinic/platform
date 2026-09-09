@@ -122,7 +122,7 @@ serve reference data with no profile linkage, no PHI and no per-user variation.
       This is a data-minimisation win worth protecting: the field returns in
       **[RESCOPE]** the clinic-side surface now exists, so the field is
       re-opened as optional PHI — scoped, logged, and excluded from
-      notification bodies. Not built until specced (spec §B5).
+      notification bodies. Not built until specced (spec §B4).
 - [x] **PASS** — error responses do not vary by existence of profile-owned
       data. A 404 on someone else's `apptId` is indistinguishable from a 404 on
       a nonexistent one.
@@ -273,7 +273,7 @@ screen** (FR-022). `006`'s dose reminders already established this surface;
       joins that list. A fictional clinic showing "₹400" is consistent with the
       rest of the seed, but a reviewer may read it as a real price commitment.
       The 🔒 badge is the mitigation; check that it is legible beside the
-      number on both B2 and B5, not tucked under it.
+      number on both B2 and B4, not tucked under it.
 
 ## Adversarial pass
 
