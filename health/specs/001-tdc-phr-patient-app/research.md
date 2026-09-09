@@ -70,10 +70,11 @@ gaps a `/speckit-analyze` pass found undesigned in the original plan.
 
 ## R7. Auth — mock OTP in demo mode
 - **Decision:** Phone-OTP flow with mock code `000000` behind a `DEMO_MODE`
-  flag; real OTP infra is Track B.
+  flag; the real OTP path is owned by `002` (6-digit, cooldown, attempt cap).
 - **Rationale:** Keeps the onboarding beat in the story without provisioning an
-  SMS gateway. Clearly tagged so Track B replaces it (Principle XIV format:
-  what's unsafe + the Track B replacement, same or next line).
+  SMS gateway. Tagged per Principle XIV (what it substitutes + its real path,
+  same or next line), behind `DEMO_MODE` and off by default — never the only
+  path (Principle IV).
 - **Rejected:** Real SMS OTP (cost, deliverability risk on stage, out of scope).
 
 ## R8. ABHA number
@@ -97,7 +98,7 @@ gaps a `/speckit-analyze` pass found undesigned in the original plan.
   queryset — never an unscoped `.get(pk=...)` followed by a permission check.
   A revoked grant excludes the profile on the very next request (no cached
   scope).
-- **Rationale:** Constitution Principle X is `[A]`-binding: a scoping bug is
+- **Rationale:** Constitution Principle X binds unconditionally: a scoping bug is
   OWASP API #1 and, on stage, would show a second family's data. Cheap to
   build as a mixin/base viewset now; expensive to retrofit across every
   endpoint later.
@@ -126,14 +127,14 @@ gaps a `/speckit-analyze` pass found undesigned in the original plan.
   doesn't cover Core API reads/writes of profiles, records, meds, and
   emergency data, which is most of the app's PHI surface.
 
-## R11. Fastlane public-page hardening (Principle XIII, Track A clause)
+## R11. Fastlane public-page hardening (Principle XIII, public-page clause)
 - **Decision:** Responder page is served HTTPS-only; PHI appears only in the
   rendered HTML body, never in the query string (`ctr`/`cmac` only); every
   response sends `X-Robots-Tag: noindex`; access/error logs record `uid`,
   `ctr`, `ip`, timestamp — never blood group, allergies, conditions, or
   contact details.
-- **Rationale:** This is the one part of Principle XIII that binds Track A
-  directly (not just "don't foreclose Track B") — the responder page serves
+- **Rationale:** This is the part of Principle XIII that bites on a surface
+  that is live today rather than on a future ABDM exchange — the responder page serves
   real PHI over a public, unauthenticated URL, so these controls are live on
   demo day, not deferred.
 - **Rejected:** Relying on obscurity (unguessable UID) alone — the CMAC/replay

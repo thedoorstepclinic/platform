@@ -14,7 +14,8 @@ likewise its own top-level `platform/clinic/`.
 **Amended 20 Aug 2026 — services moved out of `health/`.** `health/` was
 "patient-app-scoped only" and held `services/core-api/` and
 `services/fastlane/` inside it. That stopped being true the moment TDC Core
-API became the directory owner for every client (`011-care-discovery`): a
+API became the directory owner for every client (`011-care-discovery`, whose
+booking flow is now owned by `012-appointment-booking`): a
 service the doctor app calls cannot live inside the patient app's product
 directory without giving `doctor/` an upward dependency into `health/`.
 Services now sit at `platform/services/`. `health/` keeps its app, specs and
@@ -69,9 +70,9 @@ Concretely:
   which app asked. If the doctor app needs a different projection, that is a
   new endpoint, not a branch inside an existing one.
 
-### Track B: core-api aggregates, one API out
+### core-api aggregates, one API out
 
-Track A seeds the directory locally. In Track B, core-api becomes the
+The directory is currently seeded locally (a `DEMO_MODE` fixture). core-api becomes the
 **aggregation point**, not the sole author: it ingests TDC's own facilities
 from TDC Clinic (the CARE fork) and external providers from UHI / HFR / HPR,
 and still serves one directory API to every client. Rows carry `source`
@@ -79,7 +80,7 @@ and still serves one directory API to every client. Rows carry `source`
 professional id). Clients never learn where a row came from — that opacity is
 what keeps them clients.
 
-Track A writes only `source = seed`, `# DEMO-MODE` tagged per Principle XIV.
+`source = seed` rows are `DEMO_MODE` fixtures, `# DEMO-MODE` tagged per Principle XIV; `tdc_clinic` has no external gate (we own the fork), `uhi` is gated on UHI onboarding.
 
 ## Why a monorepo at all
 
@@ -109,7 +110,7 @@ Concretely:
 - Fastlane can be redeployed, rolled back, or left frozen while Core ships.
 - A red Core test suite must never block a Fastlane hotfix.
 
-For Track A this is two or three small workflows, not a platform. Resist
+Today this is two or three small workflows, not a platform. Resist
 anything that needs a build orchestrator.
 
 ## Tooling: none, for now
@@ -121,7 +122,7 @@ anything that needs a build orchestrator.
 > `pub`) before TDC Doctor lands — not yet decided, left here for reference
 > until then.
 
-No npm workspaces, no Turborepo, no Nx for Track A. `apps/health` runs its own
+No npm workspaces, no Turborepo, no Nx. `apps/health` runs its own
 `npm install` and Expo toolchain; each service has its own venv and
 `requirements.txt`. There is exactly one JS package — a workspace manager would
 be pure ceremony.

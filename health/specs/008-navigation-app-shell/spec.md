@@ -1,4 +1,4 @@
-# Feature Specification: Navigation, App Shell & Screen-State Conventions (Track A)
+# Feature Specification: Navigation, App Shell & Screen-State Conventions
 
 **Feature Branch:** `008-navigation-app-shell`
 **Created:** 2026-07-16
@@ -34,6 +34,14 @@ values (owned by `docs/design-tokens.md`).
 
 ## Navigation model
 
+> **Re-affirmed 9 Sep 2026.** A supplied reference design for `012`'s Queue
+> Status screen carried a bottom tab bar (Status · Clinics · History · Profile).
+> **Rejected, owner decision:** the tab bar is not adopted and the **Clinics tab
+> is not built** — a browse destination reachable without choosing a patient is
+> the surface Principle VIII (NON-NEGOTIABLE) exists to prevent. The re-entry
+> cost this creates is paid by `012` FR-030a's day-of Home entry, not by a
+> permanent shell. See `012` §B6 *Divergences from the reference*.
+
 **Two-level architecture — no bottom tab bar.** TDC Health is Home-centric:
 Home is the hub, profiles are the spokes. A global bottom tab bar would
 imply app-level sections that don't exist ("Home stays quiet — no feed,
@@ -55,8 +63,7 @@ ever"), and elderly-first means fewer persistent controls, not more.
 ## Route map (`go_router`)
 
 ```
-/login                              # S1 Splash/Login (009): phone → OTP → in
-/who-for                            # Router question (002) — Track B; stub in Track A
+/login                              # S0+S1 Splash/Login (002): phone → OTP → in
 
 ShellRoute (authenticated app shell — persistent header, no tab bar)
 ├── /                               # S2 Home: family cards + alerts strip
@@ -73,12 +80,12 @@ ShellRoute (authenticated app shell — persistent header, no tab bar)
     ├── /meds/slot/:time            #     Dose-occasion checklist — sheet (006)
     ├── /emergency                  # S9 Emergency editor + preview (007)
     ├── /card                       # S10 Card manager + scan log (007)
-    ├── /book                       #     Find care: search + specialty + clinic list (011, P1)
-    ├── /book/:clinicId             #     Clinic information page (011, P1)
-    ├── /book/:clinicId/doctors     #     Choose doctor — sheet (011, P1)
-    ├── /book/:clinicId/:docId/slots   #  Slot grid (010, P1)
-    ├── /book/:clinicId/:docId/confirm # Confirm + token + 🔒 pay at clinic (010, P1)
-    └── /appointment/:apptId        # Appointment detail + seeded queue view (010, P1)
+    ├── /book                       # B1 Find care: search + specialty + clinic list (012)
+    ├── /book/:clinicId             # B2 Clinic page + fee line (012)
+    ├── /book/:clinicId/doctors     # B3 Choose doctor — sheet (012)
+    ├── /book/:clinicId/:docId/confirm # B4 Confirm Booking — date + period + profile + pay (012)
+    ├── /appointment/:apptId        # B6 Appointment detail + queue position (012)
+    └── /appointment/:apptId/reschedule # B7 Reschedule — B4 rebound to an existing appt (012)
 ```
 
 `ShellRoute` keeps Home's header persistent across the profile-context
@@ -89,15 +96,28 @@ Navigation model above, not separate shell branches.
 All 12 numbered screens (`001`) have exactly one route. No screen is
 reachable two ways with two different back behaviors.
 
-**Booking sub-tree note (`010` + `011`, 20 Aug 2026):** the `/book` sub-tree is
-the one place where a single feature spans two specs — `011` owns find-care,
-the clinic page and the doctor sheet; `010` owns slots, confirm and the
-appointment. It stays a linear push stack: every screen's back goes one step
-up the funnel, and the profile context (`profileId`) is carried the whole way
-so the "who is this for" header never disappears. The doctor sheet is a sheet,
-not a shell branch, per the Navigation model above. There is **no** route into
-this sub-tree that does not start at a profile — that is `011` FR-001 and it
-is what keeps discovery out of Home (Principle VIII).
+**Booking sub-tree note (`012`, 6 Sep 2026 — supersedes the `010`+`011` note):**
+the `/book` sub-tree was the one place where a single feature spanned two
+specs. That seam is gone: `012-appointment-booking` owns B1–B7 end to end.
+
+It stays a linear push stack: every screen's back goes one step up the funnel,
+and the profile context (`profileId`) is carried the whole way so the "who is
+this for" header never disappears. The doctor sheet is a sheet, not a shell
+branch, per the Navigation model above. There is **no** route into this
+sub-tree that does not start at a profile — `012` FR-001, and it is what keeps
+discovery out of Home (Principle VIII).
+
+**Route change, 9 Sep 2026:** `/book/:clinicId/:docId/slots` is **removed**.
+`012`'s B4 and B5 merged into one "Confirm Booking" screen at `.../confirm`,
+which carries date, period, profile and payment in one scroll. B5's number is
+retired rather than reused, so B6/B7 references stay correct.
+
+**`/appointment/:apptId/reschedule` is B4 rebound, not a second slot screen.**
+It renders the same date + period picker against an existing appointment, so it lives beside
+the appointment rather than back inside `/book` — a reschedule that pushed the
+user back through the booking funnel would put Clinic and Doctor in their back
+stack as if they were still choosable, which they are not (`012` §B7: same
+doctor only). Its back goes to B6, never to B5.
 
 ## Deep-link contract
 
@@ -112,11 +132,21 @@ screen — deep links are how that's met):
 | Missed-dose nudge | `/profile/[id]/meds/slot/[time]` | Same checklist, past slot |
 | Family blast — card scanned (`001` FR-014) | `/profile/[id]/card` | Scan log, newest entry visible |
 | Test-scan blast (`007`) | `/profile/[id]/card` | Same target, entry carries Test chip |
-| ABDM record arrived (Track B, `003`) | `/profile/[id]` | Timeline, new record on top |
-| Upcoming appointment (alerts strip, `010`) | `/profile/[id]/appointment/[apptId]` | Queue view visible on landing |
+| ABDM record arrived (`003`, gated on ABDM certification) | `/profile/[id]` | Timeline, new record on top |
+| Upcoming appointment (alerts strip, `012`) | `/profile/[id]/appointment/[apptId]` | Queue view visible on landing |
+| Appointment reminder T−24h (`012`) | `/profile/[id]/appointment/[apptId]` | Queue block absent — it appears only on the day |
+| Appointment reminder T−2h (`012`) | `/profile/[id]/appointment/[apptId]` | Queue block present; token visible without scrolling |
 
 Cold-start rule: a deep link into a logged-out app goes to login and then
 **continues to the target** — never dumps the user on Home after auth.
+
+**Dead-link rule (`012`).** An appointment reminder can outlive its
+appointment — the row may have been cancelled or rescheduled on another
+device. Both reminders are cancelled locally when that happens (`012` FR-021),
+but a link that arrives anyway MUST resolve to B6 showing the terminal state
+(`Cancelled`, or `Moved to …` with a link forward), never to an error screen
+and never to a 404. A notification that leads nowhere is worse than one that
+was never sent.
 
 ## Screen-state conventions (app-wide)
 
@@ -176,7 +206,7 @@ poison every investor screenshot).
 | Decision | Owner | Notes |
 |---|---|---|
 | Segmented-control labels: "Records · Meds · Emergency" vs adding a 4th "Card" segment | Adi/Soham | Lean 3 segments with Card reached from the Emergency segment (card is part of the emergency story, and 3 segments fit elderly-first type sizes better). |
-| ~~Settings screen contents~~ | — | **RESOLVED in `009`:** phone display · Trust link · logout · version. Nothing else in Track A. |
+| ~~Settings screen contents~~ | — | **RESOLVED in `009`:** phone display · Trust link · logout · version. **Re-open (6 Sep):** production Settings also needs app lock, data export, and account deletion — all staged in `docs/backlog.md`. |
 
 ---
 

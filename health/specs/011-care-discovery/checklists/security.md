@@ -1,5 +1,15 @@
 # Security checklist — 011-care-discovery
 
+> **SUPERSEDED 6 Sep 2026** by
+> [`specs/012-appointment-booking/checklists/security.md`](../../012-appointment-booking/checklists/security.md),
+> which carries every item here forward. Retained as the decision record.
+>
+> **Vocabulary note:** this file predates the abolition of the Track A / Track B
+> split (constitution v3.0.0) and its `[A]` / `[B→A]` markers and "Track B
+> replacement" language are **historical**, left as written. There are no
+> binding classes any more: **every item blocks implementation**, and a demo
+> path names its real path plus any blocking gate and gate owner (Principle XIV).
+
 **Reviewed against `spec.md` (2026-08-20), pre-implementation — no code and no
 `plan.md` exist yet. "PASS" here means *the spec commits to this*, not *it is
 built and tested*. Re-run after implementation, before demo rehearsal.**

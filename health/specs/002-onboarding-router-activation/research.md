@@ -189,7 +189,7 @@ platform already does well and the user already trusts. UPI apps established
 this habit across exactly our user base, so the familiar pattern is also the
 cheap one.
 
-`docs/track-b-backlog.md` §3 notes the threat model here is *household*, not
+`docs/backlog.md` §3 notes the threat model here is *household*, not
 remote — the person you least want reading a parent's records is often in the
 same room. Platform auth handles that case as well as a custom PIN would.
 
@@ -236,7 +236,24 @@ is not an identity document — it is a card a stranger reads in an emergency.
 
 ---
 
-## R16 — Tracks stay separate
+## R16 — Tracks stay separate — **REVERSED 2026-09-06**
+
+> **This decision was reversed 19 days later.** Owner decision, 6 Sep 2026:
+> **one project, built to production, no tracks.** Constitution **v3.0.0**
+> deletes the binding classes entirely. The reasoning below is left as written
+> — it is a decision log, and it argued its case honestly — but note what
+> actually happened to its central claim: it held that merging the classes
+> would let a production requirement *"quietly become a Track A obligation by
+> proximity"* at the moment scope pressure is highest. The reversal does not
+> dispute that risk; it removes the thing the risk was protecting. There is no
+> lighter track left to protect, because every feature is now built to
+> production.
+>
+> The one prediction that held: *"a Track B constitution still needs
+> ratifying."* It never was. The split was abolished before it could be, which
+> is arguably the cheaper outcome — one governing document instead of two that
+> could disagree.
+
 
 **Decision.** Track A completes, then Track B's foundation, and so on. The
 constitution keeps its per-principle binding classes (`[A]` / `[B→A]` / `[B]`)
@@ -254,8 +271,10 @@ done that a merged document would blur.
 `CLAUDE.md` changelog. A track boundary moves one requirement at a time, with
 a reason, or not at all.
 
-**Standing constraint:** a Track B constitution still needs ratifying before
-compliance testing. Separate tracks does not mean an unratified one.
+~~**Standing constraint:** a Track B constitution still needs ratifying before
+compliance testing. Separate tracks does not mean an unratified one.~~
+**Resolved differently (6 Sep 2026):** no second constitution was ratified and
+none will be. v3.0.0 is the only one, and it binds everything.
 
 ---
 
@@ -331,7 +350,7 @@ typing (FR-005).
 
 **Still true:** a Google account is not the Aadhaar-linked mobile, so this
 does nothing for ABHA. Phone verification remains mandatory for that reason
-as well as for account-recovery (`docs/track-b-backlog.md` §1).
+as well as for account-recovery (`docs/backlog.md` §1).
 
 ---
 
@@ -424,5 +443,5 @@ outgrows a single droplet.
 |---|---|---|
 | Auth provider + residency (R15) | Compliance copy, locked stack | `CLAUDE.md`, Trust screen |
 | Self-hosted mail: port 25, SPF/DKIM/DMARC, IP warmup (R17) | FR-012 delivery | Ops, before FR-012 ships |
-| Track B constitution ratification (R16) | Governance, on the WASA path | `.specify/memory/constitution.md` |
+| ~~Track B constitution ratification (R16)~~ — **closed 6 Sep 2026**, split abolished instead | Governance, on the WASA path | `.specify/memory/constitution.md` (v3.0.0) |
 | Carousel content — which 3–4 frames | S1 copy | Soham |

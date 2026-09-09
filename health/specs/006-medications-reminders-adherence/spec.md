@@ -1,4 +1,4 @@
-# Feature Specification: Medications — Bundled Dose Checklist, Reminders & Stock (Track A)
+# Feature Specification: Medications — Bundled Dose Checklist, Reminders & Stock
 
 **Feature Branch:** `006-medications-reminders-adherence`
 **Created:** 2026-07-16
@@ -23,7 +23,7 @@ refills with exact stock, and what happens when a dose changes.
 **IS NOT:** Clinical adherence analytics, drug-interaction checks, dose
 calculators, or any inference about whether a med *should* be taken. Stock
 "days left" is an honest estimate, never presented as medical fact. No
-integration with pharmacies or e-prescriptions (Track B, if ever).
+integration with pharmacies or e-prescriptions (not specced; would need its own feature).
 
 ---
 
@@ -117,6 +117,23 @@ supply, Home warns me so I can refill before she runs out.
   `001` NFR-006: notification → action in <10s, ≤1 intermediate screen).
 - Reminders are per profile; the caregiver's device receives them for every
   profile they manage.
+
+**Shared primitive note (`012`, 6 Sep 2026).** Appointment reminders
+(`012` FR-022, at T−24h and T−2h) use **this same `flutter_local_notifications`
+scheduler** — not a second notification system. Two consequences worth stating
+so they are not rediscovered at implementation time:
+
+- **Scheduling and cancellation stay one code path.** `012`'s cancel/reschedule
+  rule (cancel both reminders, reschedule two new ones) is the same
+  stop-and-new pattern this spec already requires when a dose time changes
+  (FR-009). Whatever helper implements one implements the other.
+- **Notification ids must not collide.** Dose reminders key off
+  (profile, slot time); appointment reminders key off (appointment id, offset).
+  They share a scheduler namespace, so the id scheme has to keep them apart —
+  a collision silently cancels someone's 8pm dose reminder when an appointment
+  moves, which is exactly the failure this spec exists to prevent.
+
+Both remain **device-local**. No server push — a local notification is the right mechanism for a scheduled reminder regardless of maturity, and it keeps reminders working without connectivity.
 
 ## Alerts (feeding Home's alerts strip, `001` screen 2)
 
@@ -212,7 +229,7 @@ unit.
   an estimate, consistent with `CLAUDE.md` copy discipline — never implied as
   a verified clinical count.
 - **NFR-002 (Demo-grade):** missed-dose evaluation on foreground is acceptable;
-  no background job / server scheduler required for Track A.
+  no background job / server scheduler required.
 
 ---
 

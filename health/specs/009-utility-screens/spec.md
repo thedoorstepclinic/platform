@@ -1,50 +1,45 @@
-# Feature Specification: Utility Screens — Login, Health Summary, Trust, Settings (Track A)
+# Feature Specification: Utility Screens — Health Summary, Trust & Settings
 
 **Feature Branch:** `009-utility-screens`
 **Created:** 2026-07-16
 **Status:** Draft
 **Owner:** Adi (dev) / Soham (Trust copy sign-off)
-**Depends on:** [`001`](../001-tdc-phr-patient-app/spec.md) (screens 1, 6,
+**Depends on:** [`001`](../001-tdc-phr-patient-app/spec.md) (screens 6,
 12) · [`004`](../004-seed-data-and-summary/spec.md) (summary field map) ·
 [`008`](../008-navigation-app-shell/spec.md) (routes, states, tokens).
+**Cedes to:** [`002-onboarding-router-activation`](../002-onboarding-router-activation/spec.md)
+— **Splash/Login (S1) moved to `002`** in its 18 Aug 2026 rewrite. `002`'s
+downstream-edits table has asked for this since; applied 6 Sep 2026.
 
 ## What this is / is NOT
 
-**IS:** The remaining screens no feature spec owns: Splash/Login (S1),
-Health Summary (S6), Trust (S12), and the minimal Settings screen `008`
-introduced. These are "utility" in navigation terms only — Login is the
-first impression and Trust is the positioning, so both get full care.
+**IS:** The remaining screens no feature spec owns: Health Summary (S6),
+Trust (S12), and the minimal Settings screen `008` introduced. "Utility" in
+navigation terms only — Trust is the positioning and gets full care.
 
-**IS NOT:** Real OTP infrastructure (Track B), the summary PDF's field
-mapping (owned by `004`), or the onboarding router (`002`, Track B).
+**IS NOT:** **Splash/Login — ceded to `002`** (see below), the summary PDF's
+field mapping (owned by `004`), or onboarding (`002`).
 
 ---
 
-## Screen 1 — Splash / Login
+## Screen 1 — Splash / Login — **CEDED to `002`**
 
-Purpose: get a returning user in instantly and a demo in reliably. Two
-steps, one decision each (`002`'s one-decision-per-screen rule applies
-even in Track A).
-
-**Flow:**
-1. **Splash** — logo + wordmark on `bg`, auto-advances (<1s). If a valid
-   session exists → straight to Home. No splash-screen taglines.
-2. **Phone entry** — one field (+91 prefix fixed for Track A), one primary
-   button ("Get OTP"). Below, quiet reassurance line from approved copy:
-   *"Your records are encrypted and stored only in India."*
-3. **OTP entry** — 6-digit code boxes, auto-submit on 6th digit, resend
-   after 30s countdown. Demo mode: `000000` accepted for any number
-   (`001` FR-001, tagged `# DEMO-MODE`); thin dismissible "Demo" tag shows
-   here and only here (`008`).
-
-**States:** wrong OTP → inline *"That code didn't match. Try again."*
-(field shakes once, code clears — never a modal). Network failure →
-standard error state with retry (`008`). No account-lockout logic in
-Track A (no real auth hardening, per scope).
-
-**After auth:** returning user → Home. First-ever login → own profile
-auto-created, then Home with the first-session featured action (`001`
-§4.1; full router deferred to `002`/Track B).
+> **Removed 6 Sep 2026.** `002`'s 18 Aug rewrite absorbed Splash and Login
+> (its S0 and S1) and its downstream-edits table has listed this cession as
+> required ever since. Keeping a second description here was a live
+> contradiction: this spec described a `+91`-fixed field, `000000` accepted
+> for any number, and *"no account-lockout logic (no real auth hardening, per
+> scope)"* — all three of which `002` and constitution v3.0.0 now override.
+>
+> **The authority is [`002` §S0/S1](../002-onboarding-router-activation/spec.md).**
+> There: splash under 1s with the session check behind it · a 3–4 frame brand
+> carousel with the entry field in the first frame · Google sign-in on the
+> same surface · **6-digit OTP with an enforced resend cooldown and attempt
+> cap**, whose failure copy must not reveal whether a number is registered.
+>
+> `009`'s former FR-001 and FR-002 are deleted with the screen; FR-003 and
+> FR-004 move to `002` as well. FR-005 onward (Health Summary, Trust,
+> Settings) are unaffected and keep their numbers.
 
 ## Screen 6 — Health Summary
 
@@ -94,10 +89,10 @@ Reached from Settings and linked from consent surfaces (`008`).
 
 ## Settings (utility, unnumbered)
 
-Track A minimum, resisting growth (`008` open decision, now resolved):
+Deliberately minimal, resisting growth (`008` open decision):
 account phone number (display only) · **Trust & privacy** (→ S12) ·
 **Log out** (one confirm) · app version + build tag. Nothing else — no
-preferences, no theme toggle, no notification settings in Track A
+preferences, no theme toggle, no notification settings
 (reminders configure per-med in `006`).
 
 ---
@@ -105,15 +100,15 @@ preferences, no theme toggle, no notification settings in Track A
 ## Requirements
 
 ### Functional Requirements
-- **FR-001**: Splash MUST auto-advance in under 1s; a valid session skips
-  login entirely.
-- **FR-002**: Login MUST be exactly two steps (phone → OTP), with demo
-  OTP `000000` accepted in demo mode and the Demo tag confined to this
-  screen.
-- **FR-003**: OTP errors MUST resolve inline (no modals); resend gated by
-  a 30s countdown.
-- **FR-004**: First-ever auth MUST auto-create the user's own profile
-  before landing on Home.
+- ~~**FR-001**~~ · ~~**FR-002**~~ · ~~**FR-003**~~ · ~~**FR-004**~~ —
+  **deleted 6 Sep 2026, with Splash/Login ceded to `002`.** They covered
+  splash auto-advance, the two-step phone→OTP flow with `000000` accepted,
+  inline OTP errors with a 30s resend, and profile auto-creation on first
+  auth. All four are now owned by [`002` §S0–S3](../002-onboarding-router-activation/spec.md),
+  which supersedes them on substance as well as ownership: OTP is 6 digits
+  with an enforced cooldown **and an attempt cap**, and failure copy must not
+  reveal whether a number is registered. Numbers are retired rather than
+  reused, so existing references to `009` FR-005…FR-008 stay valid.
 - **FR-005**: The Health Summary screen MUST render the same fields in
   the same order as the `004` PDF mapping, derived entirely from
   structured data — no on-screen editing, no divergence from the PDF.
@@ -123,7 +118,7 @@ preferences, no theme toggle, no notification settings in Track A
   using approved copy, with working links to Family & consent and the
   scan log.
 - **FR-008**: Settings MUST contain exactly: phone display, Trust link,
-  logout (with confirm), version — nothing more in Track A.
+  logout (with confirm), version. **Production additions pending specs:** app lock, data export, account deletion — all staged in `docs/backlog.md`, all in scope.
 
 ### Non-Functional Requirements
 - **NFR-001:** Login flow completable one-handed; OTP boxes ≥48dp.

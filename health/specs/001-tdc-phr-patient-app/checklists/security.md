@@ -11,10 +11,11 @@ transit and at rest, session management, API security. One critical finding
 stalls ABDM certification — see `docs/compliance-baseline.md` §3.
 
 Mark each item **PASS**, **N/A** (with a reason), or **GAP** (with an owner).
-A `GAP` on any item marked `[A]` blocks implementation. A `GAP` on `[B→A]` is
-allowed only if the non-foreclosure clause still holds — say why.
+**Every item blocks implementation** — the `[A]` / `[B→A]` / `[B]` binding
+classes were abolished 6 Sep 2026 (constitution v3.0.0). An item may be **N/A**
+only where this feature genuinely has no such surface, with the reason stated.
 
-**Summary:** 2 `[A]`-blocking GAPs (Authorization #5, Audit #3), both expected
+**Summary:** 2 blocking GAPs (Authorization #5, Audit #3), both expected
 at this pre-code stage but requiring a concrete answer before the phases they
 gate. 12 non-blocking GAPs tracked below, mostly standard DRF/deploy
 discipline that isn't yet written into `plan.md` as an explicit requirement.
@@ -24,7 +25,7 @@ out-of-scope resource existence; collapsed to 404-only.
 
 ---
 
-## Authorization — Principle X `[A]`
+## Authorization — Principle X
 
 - [x] **PASS** — Every new/modified DRF viewset overrides `get_queryset()` with a
       server-derived scope filter (caller's profiles + unrevoked
@@ -41,7 +42,7 @@ out-of-scope resource existence; collapsed to 404-only.
       no long-lived token embedding the scope).
       *`contracts/core-api.md`: "A revoked grant stops access on the next
       request; no cached scope."*
-- [ ] **GAP** (owner: Adi, `[A]`) — Tested with a second user: user B cannot read, write, or
+- [ ] **GAP** (owner: Adi,) — Tested with a second user: user B cannot read, write, or
       enumerate user A's profile, records, meds, card, or appointments — by
       id, by list, or by any filter parameter.
       *Cannot be true yet — no code exists. Expected GAP until T005/T009
@@ -66,12 +67,13 @@ out-of-scope resource existence; collapsed to 404-only.
 - [ ] **GAP** (owner: Adi) — Token lifetime and refresh behaviour stated in the plan.
       *SimpleJWT is the named mechanism but no lifetime/refresh policy is
       documented anywhere. Cheap to add to `plan.md` Technical Context.*
-- [ ] **GAP** (owner: Adi) — Logout / revoke path exists and is described (even if Track B).
+- [ ] **GAP** (owner: Adi) — Logout / revoke path exists, is described, and is built.
       *Not described. Minimal fix: client discards JWT locally, no
-      server-side blacklist for Track A — tag `# DEMO-MODE`, Track B adds a
-      token blacklist. Cheap to close before T008.*
-- [x] **PASS** — Any auth shortcut is tagged `# DEMO-MODE` with its Track B replacement
-      (Principle XIV `[A]`).
+      server-side blacklist yet — tag `# DEMO-MODE`, and the real path adds a
+      token blacklist. **Now blocking:** auth hardening is in scope
+      (constitution v3.0.0), so this cannot ship as a permanent shortcut. Cheap to close before T008.*
+- [x] **PASS** — Any auth shortcut sits behind `DEMO_MODE` (off by default) and is
+      tagged `# DEMO-MODE` naming its real path (Principle XIV).
       *`contracts/core-api.md` Notes + `tasks.md` T008 both commit to this
       for mock OTP.*
 
@@ -105,7 +107,7 @@ out-of-scope resource existence; collapsed to 404-only.
       *`emergency_payload` (`data-model.md`) is plain structured data with no
       transport assumption baked in.*
 
-## Audit — Principle XI `[A]`
+## Audit — Principle XI
 
 - [x] **PASS** — Every PHI read and write in this feature emits an `access_logs` row:
       actor, subject profile, action, object type + id, timestamp, purpose,
@@ -116,7 +118,7 @@ out-of-scope resource existence; collapsed to 404-only.
       write fails the request.
       *`data-model.md`: "Written in the same transaction... a failed log
       write fails the request." T006 builds this as a shared writer.*
-- [ ] **GAP** (owner: Adi, `[A]`) — The feature does not add a PHI path that bypasses the logging layer
+- [ ] **GAP** (owner: Adi,) — The feature does not add a PHI path that bypasses the logging layer
       (raw SQL, bulk operation, management command, direct file serve).
       *Unresolved: record files and the summary PDF (`GET
       /profiles/{id}/records/`'s `file` field, `GET
@@ -152,8 +154,7 @@ out-of-scope resource existence; collapsed to 404-only.
 - [x] **PASS** — Rate limits considered for auth, OTP, and any unauthenticated endpoint;
       absence is a documented `# DEMO-MODE` decision, not an oversight.
       *T008 + Principle XIV already require the mock-OTP shortcut to carry a
-      `# DEMO-MODE` tag naming what's unsafe (no rate limit) and the Track B
-      replacement — the requirement to document is committed even though
+      `# DEMO-MODE` tag naming what's unsafe (no rate limit) and its real path — the requirement to document is committed even though
       the literal tag text doesn't exist until T008 is coded.*
 
 ## Secrets & config
@@ -168,12 +169,12 @@ out-of-scope resource existence; collapsed to 404-only.
 - [ ] **GAP** (owner: Adi) — `DEBUG` off by default outside local; no debug endpoint reachable.
       *Not stated. Add to T002.*
 - [ ] **GAP** (owner: Adi) — CORS/ALLOWED_HOSTS are allowlists, not wildcards — or tagged
-      `# DEMO-MODE` with the Track B replacement.
+      `# DEMO-MODE` naming the real path.
       *Not stated. Principle XIV names "any permissive CORS or debug
       setting" as in-scope for DEMO-MODE tagging — nothing currently
       guarantees this gets tagged if left permissive. Add to T002.*
 
-## Copy — Principle III `[A]`
+## Copy — Principle III
 
 - [x] **PASS** — No cipher names in UI copy ("AES-256", "military-grade").
       *Copy Guardrails (`spec.md`) + T032 lint task, covering both codebases.*

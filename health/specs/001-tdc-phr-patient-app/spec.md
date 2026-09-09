@@ -1,4 +1,4 @@
-# Feature Specification: TDC PHR Patient App — Investor-Demo Prototype (Track A)
+# Feature Specification: TDC PHR Patient App — Core Application
 
 **Feature:** `001-tdc-phr-patient-app` (directory-scoped; trunk-based on
 `main` — no per-feature git branch exists post-monorepo-migration, see
@@ -7,11 +7,11 @@
 **Status:** Active
 **Owner:** Adi (dev) / Soham (demo)
 **Source spec version:** 0.1 (15 Jul 2026)
-**Input:** Build the investor-demo prototype of the TDC patient/family PHR app
-(display name: **TDC Health**). Investor pitch: **16 Aug 2026**; meetup/user
-demos begin early Aug (meetup loop adds `010`'s booking beat — this spec's
-5-minute golden path is the investor script and is unchanged). Seeded data,
-demo-grade quality, Android + web via one codebase.
+**Input:** Build the core TDC patient/family PHR app (display name:
+**TDC Health**), Android + web via one Flutter codebase, to production quality.
+The 5-minute golden path below is retained as the **demo script and the
+end-to-end acceptance path** — it exercises every P0 surface in order, which
+makes it the most useful smoke test the project has, not merely a pitch.
 
 > **Supersession notice:** This specification supersedes any patient-app scope
 > in older handover / Hyperledger-era documents.
@@ -20,11 +20,21 @@ demo-grade quality, Android + web via one codebase.
 
 ## What this is / is NOT
 
-**IS:** The build spec for the investor-demo prototype of the TDC patient/family
-app. Seeded data, demo-grade quality, Android + web from one codebase.
+**IS:** The build spec for the core TDC patient/family app — profiles, records
+timeline, Health Summary, medications, emergency card, Trust. Android + web from
+one Flutter codebase, built to production quality.
 
-**IS NOT:** The production MMP spec. No payments, no real ABDM data exchange, no
-DPDP-grade hardening. **Track B re-specs all of this post-funding.**
+**IS NOT:** Every feature in the product. Onboarding is `002`, ABDM sync is
+`003`, booking is `012`, and per-screen depth lives in `005`–`009`. This is the
+spine they mount onto.
+
+> **Rescoped 2026-09-06.** This spec previously described itself as *"the
+> investor-demo prototype… seeded data, demo-grade quality"* and said *"Track B
+> re-specs all of this post-funding."* The track split is abolished
+> (constitution v3.0.0) — **there is no re-spec coming, so this spec is the
+> production one.** What changes is the standard, not the scope: demo-grade is
+> no longer an acceptable answer, edge cases have to work rather than merely not
+> crash, and seeded data is a `DEMO_MODE` fixture rather than the content.
 
 ---
 
@@ -91,10 +101,12 @@ phone — including the worst-case emergency — in under five minutes.
 
 ## Scope
 
-### P0 — MUST work on demo day
+### Core surfaces this spec owns
+
+*(Formerly "P0 — MUST work on demo day". The P0/P1 ladder was repealed 6 Sep 2026 — constitution v3.0.0 workflow rule 3. These are the surfaces `001` owns; the list below is what it depends on or hands off, not a lower tier.)*
 | # | Feature | Notes |
 |---|---------|-------|
-| 1 | Phone-OTP onboarding | Mock OTP `000000` in demo mode; real OTP infra is Track B |
+| 1 | Phone-OTP onboarding | **Owned by `002`** (6-digit, cooldown, attempt cap). `000000` survives only as a `DEMO_MODE` fixture, off by default — never the only path |
 | 2 | Family profiles + assisted add | Caregiver-grant recorded to `caregiver_grants` log — **this IS the consent moment** |
 | 3 | Record upload (camera/gallery) + type tag (Rx / Lab / Discharge / Other) + timeline | No OCR — store image/PDF + manual title. *"Digitize the plastic bag"* |
 | 4 | One-page Health Summary per profile → share as PDF | Template render from structured fields + record list; **not AI-generated** |
@@ -105,31 +117,43 @@ phone — including the worst-case emergency — in under five minutes.
 | 9 | Family blast: FCM push to all linked family devices on card scan | Include coarse location if scanner shares it; degrade gracefully if not |
 | 10 | Trust screen | Approved copy only — see §Copy Guardrails |
 
-### P1 — build ONLY if P0 is done (cut bottom-up per slip rule)
-- **Consult booking + seeded queue tracking** (`010` — unlocked 1 Aug 2026,
-  meetup-demo driver; seeded/fictional only, not in the investor golden path).
-- **Care discovery** (`011` — specced 20 Aug 2026: find-care screen, clinic
-  information page, seeded ~10-clinic directory). Step 1 of `010`'s flow, so
-  it builds immediately before it and pauses with it. Same fences: profile-
-  context entry only, no Home surface, seeded everything.
-- HMS→app vertical slice (Rx created in CARE fork lands in timeline; shared
-  DB/webhook fake is acceptable).
-- ABHA M1 create-via-Aadhaar — sandbox creds **arrived** (2026-08-17); the
-  condition that gated this is resolved, so it's buildable if P0 time
-  allows. Still P1 (cut bottom-up first if a day slips) — the field stays
-  manual if it doesn't get built.
-- Marathi toggle on responder page.
-- Test-scan celebration screen (shareable moment).
+### Adjacent features — own specs, own sequence
 
-### Out of scope — do not build, do not fake beyond a lock icon
-Payments/paywall (show 🔒 "Family Plan" badge max; 🔒 "pay at clinic" inside
-booking) · OCR/AI extraction · ABDM M2/M3 data exchange · **real UHI
-integration** (seeded booking + seeded directory per `010`/`011` only) · iOS ·
-offline mode · real auth hardening · doctor-app features · pet profiles ·
-**real-time HMS queue feeds** (`010`'s queue is a seeded simulation) ·
-**symptom search** (rejected 20 Aug 2026 — medical inference, and it would put
-health complaints in search logs) · written reviews/review counts · any browse
-destination reachable without first choosing a profile (Principle VIII).
+*(Formerly "P1 — build ONLY if P0 is done, cut bottom-up per slip rule". **The
+slip rule is repealed**: no feature is cut to fund another. These are sequenced
+by dependency, not ranked by tier.)*
+
+- **Appointment booking** — `012-appointment-booking`, which supersedes `010`
+  (booking + queue) and `011` (care discovery). Owns B1–B7 end to end.
+- **HMS→app vertical slice** — an Rx created in the CARE fork lands in the
+  timeline. No external gate: we own the fork.
+- **ABHA M1 create-via-Aadhaar** — sandbox credentials arrived 2026-08-17.
+  **GATE: ABDM certification** for anything beyond sandbox (owner: Adi).
+- **Marathi toggle on the responder page** — the narrow version. App-wide
+  Marathi is a separate, larger item staged in `docs/backlog.md` §4.
+- **Test-scan celebration screen** (shareable moment).
+
+### Out of scope for **this spec** — owned elsewhere or prohibited
+
+**Rewritten 6 Sep 2026.** Most of the old list was scoped out by the track
+split, not on its own merits. `CLAUDE.md` §Scope is now the authority; this is
+the `001`-local view.
+
+- **Owned by another spec, not out of scope for the product:** onboarding and
+  OTP (`002`) · ABDM sync (`003`) · booking, discovery and payments (`012`) ·
+  per-screen depth (`005`–`009`).
+- **In scope for the product, gated externally:** real UHI integration and
+  ABDM M2/M3 — each names its gate and owner in its owning spec.
+- **Prohibited on independent grounds:** OCR/AI extraction · iOS · offline mode
+  (all HARD-PROHIBITED, `CLAUDE.md`) · pet profiles · any browse destination
+  reachable without first choosing a profile (Principle VIII).
+- **Repealed from this list:** *"real auth hardening"* — now in scope
+  (constitution v3.0.0). *"Real-time HMS queue feeds"* — in scope; we own the
+  CARE fork. *"Payments/paywall beyond a lock icon"* — in scope via `012`.
+- **Pending an owner decision** (`CLAUDE.md` §Scope): symptom search (still
+  rejected — medical inference, and health complaints in search logs) and
+  written reviews (the fabricated-corpus objection dissolves once the directory
+  is real; needs a product and moderation call).
 
 ---
 
@@ -170,13 +194,41 @@ distinct loops. Getting the balance between them right is what keeps the app
 useful without becoming noisy.
 
 ### Loop 1 — First session (setup)
-Right after onboarding (see `002-onboarding-router-activation` for the router
-and account-creation detail), Home opens close to empty: one profile card
-(the user's own) and a single featured prompt, weighted by the router answer
-per `002` §"Home: persona-weighted first actions" — for most caregivers this
-resolves quickly to **"Add a family member"**, since assisted-add writes the
-`caregiver_grants` row (`001` FR-003) and a new profile card appears
-immediately.
+
+> **Corrected 2026-09-06.** This section previously read *"weighted by the
+> router answer per `002` §'Home: persona-weighted first actions'"*. There is
+> no such section, and **the router screen it referred to was deleted** by
+> `002`'s 18 Aug rewrite (`002` FR-008: Home MUST NOT ask who the app is for).
+> The persona signal now comes from the first profile's `relation`, set when
+> the profile is created — a real decision rather than an abstract one.
+
+Right after onboarding (see [`002-onboarding-router-activation`](../002-onboarding-router-activation/spec.md)
+for account creation), Home opens close to empty: one profile card (the user's
+own) and a single featured prompt, weighted by **`profiles.relation`** — for
+most caregivers this resolves quickly to **"Add a family member"**, since
+assisted-add writes the `caregiver_grants` row (FR-003) and a new profile card
+appears immediately.
+
+**Until `002` ships, the signal comes from existing data, not a computation.**
+Under `DEMO_MODE` the world arrives with Rohan/Asha/Prakash and their relations
+already set (`004`); in ordinary use, assisted-add (FR-003) captures `relation`
+when a profile is created. Either way Loop 1 *reads* the field — nothing
+calculates a persona at runtime, and no such branch should be built. `002`'s
+card step is what populates it at signup.
+
+**Persistent "Add family" action (`002` FR-024a, carried here).** Home
+carries a dedicated, always-present Add-family action, not only the featured
+prompt. Loop 1's prompt disappears the moment a second profile exists, and the
+caregiver who finally has a free minute three weeks later needs somewhere to
+go. It is an **action affordance, not a content slot** — Principle VIII is
+non-negotiable and this must not become a card, a banner, or a suggestion feed.
+
+Taken on 6 Sep as a named B→A slip under `002`'s governance clause, hours
+before that clause was voided by the abolition of the tracks — it stands on its
+own merits either way. **`002` FR-024b — the first-run walkthrough — does not
+come with it**: it explains a family-linking flow (invite-out / request-in)
+that is not built yet, so shipping it would walk a user through capabilities
+that don't exist. It lands when that flow does. Carried here as FR-023.
 
 Each profile card then carries its own **setup checklist as chips**:
 *Add records · Add medicines · Complete emergency profile · Link card.*
@@ -203,6 +255,28 @@ to the relevant med or profile.
   MUST be achievable in under 10 seconds (no more than one intermediate
   screen between notification tap and the action it names).
 
+**Appointments in the strip (`012`, 6 Sep 2026 — bounded on purpose).** An
+upcoming appointment appears here as one resolving alert: *"Baba — Dr. Kavya,
+tomorrow 10:30, token 16."* It clears on cancellation and after the visit.
+
+The bound is the point (`012` FR-030): **at most one row per appointment, only
+within 48 hours of the session, at most two appointment rows across all
+profiles, and never ranked above a low-stock or missed-dose alert.**
+
+**Day-of entry (`012` FR-030a, added 9 Sep 2026).** On the day of an
+appointment, that row is promoted to a prominent one-tap entry into Queue
+Status — *"Aai — Sunrise Poly Clinic, this morning · token 28"*. It exists
+because dropping the reference design's bottom tab bar (Principle VIII) costs a
+patient in a waiting room an easy way back to their token, and this pays that
+cost without a permanent surface. **It is still a resolving alert:** one
+destination the user already chose, no recommendation, nothing to refresh, gone
+the moment the appointment resolves. It counts against the two-row cap rather
+than sitting beside it. Without a cap, a
+caregiver managing three parents turns the strip into the content feed
+Principle VIII exists to prevent — and an appointment four days out is not
+something the user must act on today, which is the only thing this strip is
+for.
+
 ### Loop 3 — Event (high-stakes, rare)
 Two triggers: a doctor visit (open profile → Health Summary → share PDF via
 WhatsApp, FR-007) and a card scan (responder page + family blast, FR-012/014
@@ -220,7 +294,7 @@ itself a trust signal (echoes Principle VI, data-sovereignty framing, in the
 constitution — the app doesn't need to manufacture engagement to be worth
 paying for).
 
-### Forward-compatibility note (Track B)
+### Forward-compatibility note
 When ABHA sync (`003-abdm-sync-subscription`) lands post-funding, it slots
 into this exact structure with **no new surfaces**: sync becomes one more
 setup-checklist chip ("Turn on automatic sync") and inbound records become
@@ -312,7 +386,7 @@ minutes.
   in the corresponding profile's timeline (shared DB / fake webhook acceptable).
 - **FR-020** *(P1)*: The responder page MUST support an EN/MR language toggle.
 - **FR-021** *(P0, cross-cutting — added 2026-08-17, constitution Principle
-  XI `[A]`)*: The system MUST emit one `access_logs` row — actor, subject
+  XI)*: The system MUST emit one `access_logs` row — actor, subject
   profile, action, object type + id, timestamp, purpose, source service —
   for every PHI read or write through Core API or Fastlane, written in the
   same transaction as the access it records; a failed log write MUST fail
@@ -322,7 +396,7 @@ minutes.
   `data-model.md` §access_logs and `contracts/core-api.md` §Access Logging;
   built by `tasks.md` T006/T025.
 - **FR-022** *(P0, cross-cutting — added 2026-08-17, constitution Principle
-  X `[A]`)*: Every Core API endpoint touching `profiles`, `records`,
+  X)*: Every Core API endpoint touching `profiles`, `records`,
   `medications`, `emergency_profiles`, `cards`, or `scan_events` MUST derive
   its result set server-side from the authenticated caller — the caller's
   own profiles union profiles reachable through an unrevoked
@@ -336,12 +410,22 @@ minutes.
   2026-08-17). Design in `contracts/core-api.md` §Authorization Scoping and
   `research.md` R9; built by `tasks.md` T005.
 
+- **FR-023** *(P0 — added 2026-09-06; `002` FR-024a slipped B→A, named per
+  `002`'s governance clause)*: Home MUST carry a dedicated, persistent
+  **"Add family"** action, available regardless of how many profiles exist.
+  It MUST be an action affordance — not a content card, banner, or suggestion
+  slot (Principle VIII). Loop 1's featured prompt is not a substitute: the
+  prompt resolves away once a second profile exists, and the durable
+  affordance is what serves the caregiver who returns weeks later.
+  `002` FR-024b (first-run walkthrough) does **not** come with it — it explains
+  an invite/request flow that is not built yet.
+
 ### Non-Functional Requirements
 - **NFR-001 (Perf):** Responder page < 2s on 4G.
 - **NFR-002 (Availability):** Fastlane survives Core API downtime (snapshot
   isolation).
-- **NFR-003 (Security, prototype-grade):** Card replay protection via CMAC +
-  monotonic counter. Full auth hardening is Track B.
+- **NFR-003 (Security):** Card replay protection via CMAC +
+  monotonic counter. **Auth hardening is in scope** (constitution v3.0.0 repealed the deferral) — rate limiting, lockout, session and token handling for the surfaces this spec owns.
 - **NFR-004 (Accessibility):** All screens readable at arm's length; large type
   and tap targets for elderly users.
 - **NFR-005 (Resettability):** One-command demo reset.

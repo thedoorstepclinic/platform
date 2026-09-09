@@ -1,4 +1,4 @@
-# Feature Specification: Emergency Profile, Card Manager & Family Consent Surfaces (Track A)
+# Feature Specification: Emergency Profile, Card Manager & Family Consent Surfaces
 
 **Feature Branch:** `007-emergency-profile-card-consent`
 **Created:** 2026-07-16
@@ -76,7 +76,7 @@ level, with old rows retained (`active = false`) as history. A lost card is
 replaced by revoking it and linking the new one — two taps, and the revoked
 card's UID stays in the scan log's history. Multiple simultaneously-active
 cards multiply the abuse surface (each is an unauthenticated data URL in
-the world) for no Track A benefit.
+the world) for no benefit.
 
 ### Test scan (decision — real round-trip, not a mock)
 The test-scan button exercises the **real pipeline**, not an in-app
@@ -125,9 +125,9 @@ The consent ledger, per `001` FR-003/004:
 - Family members who joined via QR/invite code (`002`) appear here as
   *linked members*, visually distinct from *managed profiles* — the screen
   must not blur "I manage Aai" with "my brother is in the family group."
-- Track B note: this screen is where `003`'s per-profile sync toggle and
+- Forward note: this screen is where `003`'s per-profile sync toggle and
   consent-artifact list will live. No new surface later — reserved section,
-  hidden in Track A.
+  hidden until `003`'s gate clears.
 
 ---
 
@@ -140,7 +140,7 @@ The consent ledger, per `001` FR-003/004:
 | Screenshot/share a test URL before it's used | Single-use + expiry bounds the window; the page itself contains only what a physical tap would reveal anyway — the card holder chose that exposure at setup. |
 | Spam test scans to flood family with pushes | Rate-limit test scans per card (e.g. a few per hour, server-side); every one is logged and labeled. |
 | Ex-caregiver retains access after falling out with family | Grant revoke (`revoked_ts`) kills app access; card revoke kills the responder page. Both one-toggle, both on surfaces the account owner controls. |
-| Revoked card re-activated by someone with brief phone access | Re-activation lives behind the app's normal auth session — same trust boundary as everything else; acceptable for Track A (no real auth hardening, per scope). |
+| Revoked card re-activated by someone with brief phone access | Re-activation lives behind the app's normal auth session. **Re-open (6 Sep 2026):** the old answer leaned on "no real auth hardening, per scope", which is repealed — auth hardening is in scope now. Re-activating a revoked emergency card is a high-consequence action taken from an unlocked phone; app-lock (`docs/backlog.md` §3) and a step-up confirm both bear on it. Owner: Adi. |
 | Malicious "family member" joins via leaked invite code | Codes are single-use, short-lived, show inviter identity before join (`002` FR-005), and joining grants *visibility linkage only* — never caregiver rights over any profile. |
 
 ---
@@ -199,7 +199,7 @@ demos lived-in rather than empty.
 |---|---|---|
 | Test-scan rate limit value | Adi | Propose 3/hour/card; any value beats none. |
 | Test URL TTL | Adi | Propose 5 minutes, single-use. |
-| Whether re-activating a revoked card warrants a stronger confirm than revoking | Adi | Lean same-weight confirmation; asymmetry adds confusion for marginal gain in Track A. |
+| Whether re-activating a revoked card warrants a stronger confirm than revoking | Adi | **Revisit.** The old lean (same-weight, asymmetry not worth it) rested on demo scope. Revocation is the safe direction and re-activation is the dangerous one — asymmetric confirmation is the normal production answer. See the abuse-table row above. |
 
 ---
 

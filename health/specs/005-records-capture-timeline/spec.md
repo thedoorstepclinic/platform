@@ -1,4 +1,4 @@
-# Feature Specification: Records — Capture, Multi-Page Scan & Timeline (Track A)
+# Feature Specification: Records — Capture, Multi-Page Scan & Timeline
 
 **Feature Branch:** `005-records-capture-timeline`
 **Created:** 2026-07-16
@@ -125,7 +125,7 @@ camera-upload beat on the physical Android demo phone, never on web.
   leave no persisted trace.
 - **FR-009**: From Record detail, title/type/date MUST be editable after
   save. Delete MUST require explicit confirmation; delete is permanent
-  (no trash/undo) for Track A.
+  (no trash/undo) — see Open Decisions; a production undo window is worth revisiting now that deletion is permanent for real users, not demo data.
 - **FR-010**: A saved record MUST appear in the profile timeline
   immediately, newest-first (unchanged from `001` FR-005/006).
 
@@ -153,7 +153,7 @@ before D3 work starts, not discovered mid-sprint.
 ## Open Decisions
 | Decision | Owner | Notes |
 |---|---|---|
-| Max pages per multi-page record | Adi | Uncapped for Track A (trust the happy path); revisit only if it becomes a real demo problem. |
+| Max pages per multi-page record | Adi | **Needs a cap.** Uncapped was acceptable when the happy path was the only path; at production an uncapped multi-page scan is a memory and upload-size failure on a low-end device. |
 | Exact native scanner library/version | Adi | A Flutter plugin or platform channel wrapping Google ML Kit Document Scanner (e.g. `google_mlkit_document_scanner` or an equivalent) is the leading candidate; confirm during a short D3 spike. |
 | Page-reorder interaction (drag vs. up/down buttons) in "Choose from files" multi-image combine | Adi | Implementation detail — doesn't change the behavior contract above. |
 

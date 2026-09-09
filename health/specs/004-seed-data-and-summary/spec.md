@@ -1,4 +1,4 @@
-# Feature Specification: Seed Data & Health Summary Contract (Track A)
+# Feature Specification: Seed Data & Health Summary Contract
 
 **Feature Branch:** `004-seed-data-and-summary`
 **Created:** 2026-07-16
@@ -44,9 +44,14 @@ invent new ones per-record):
 - **Prabhat Multispecialty Hospital** — the Nov-2025 hypoglycemia discharge.
 - **Kavya Family Clinic** — Prakash's prescribing clinic.
 
-### Care-discovery directory (`011`, added 20 Aug 2026)
+### Care-discovery directory (`011`, added 20 Aug 2026; owned by `012` from 6 Sep 2026)
 
-`011-care-discovery` needs a browsable directory, so the four names above are
+> **Ownership note (6 Sep 2026).** `011` and `010` are superseded by
+> [`012-appointment-booking`](../012-appointment-booking/spec.md), which owns the
+> whole booking flow. This section's rules are unchanged; the spec that consumes
+> them is now `012`. Additions from `012` are in *Booking lifecycle seed* below.
+
+`012` needs a browsable directory, so the four names above are
 no longer the whole set — they are the **record-bearing** facilities and stay
 locked as such. The directory extends the set with roughly six more bookable
 clinics, under the same rule and two extensions of it.
@@ -55,28 +60,52 @@ clinics, under the same rule and two extensions of it.
   Multispecialty Hospital, Kavya Family Clinic. **Ashirwad Diagnostics is a
   lab and MUST NOT appear as a bookable consult clinic** — a lab offering
   consultations is a data-model lie the demo doesn't need.
-- **~7 new fictional clinic names** are required to reach ~10. They are
-  **not yet approved**: the candidate list lives in `011`'s Open Decisions and
-  each name must be checked against real Pune facilities before it lands here.
-  Until that check returns, this section is the blocker, not `011`.
+- **~7 new fictional clinic names** are required to reach ~10. **Approved by
+  owner decision, 6 Sep 2026** — the candidate list lands as-is and this section
+  is no longer a blocker: Gulmohar Health Centre · Shantiniketan Family Clinic ·
+  Nisarg Multispecialty · Anandvan Child Care · Chandrakala Heart Care · Tulip
+  Poly Clinic · Riverside Family Clinic. The **avoid list stays binding** for
+  any name added later — Ruby Hall, Sahyadri, Jehangir, Deenanath Mangeshkar,
+  Noble, Poona Hospital, Sancheti, Inamdar, Aditya Birla. *Residual risk,
+  recorded not resolved:* these seven were accepted on judgement rather than a
+  register check, so a collision with a small real Pune practice is possible;
+  the mitigation is that a collision is corrected by editing one seed row, and
+  imagery (Extension 1) and coordinates (Extension 2) remain the two harms that
+  cannot be undone by a rename.
 - **Extension 1 — imagery.** The rule now covers pictures, not just names: no
   clinic or doctor image may depict an identifiable real facility or a real
-  practising clinician (`011` FR-010). A stock photo of an actual hospital
+  practising clinician (`012` FR-025, was `011` FR-010). A stock photo of an actual hospital
   is the same leak by another route.
-- **Extension 2 — coordinates.** `011` seeds real lat/lng per clinic for its
-  map. A seeded pin MUST NOT land on a real healthcare facility (`011`
-  FR-011) — pinning a fictional clinic onto a real hospital asserts an
+- **Extension 2 — coordinates.** `012` seeds real lat/lng per clinic for its
+  map. A seeded pin MUST NOT land on a real healthcare facility (`012`
+  FR-024, was `011` FR-011) — pinning a fictional clinic onto a real hospital asserts an
   address as well as a name, which is worse than the Ruby Hall leak, not
   better.
 
-Also seeded by `011`: ~10 specialties (4 primary chips + the *More* set,
+Also seeded by `012`: ~10 specialties (4 primary chips + the *More* set,
 including **Diabetology** so Asha's follow-up is a natural demo path), 2–4
 doctors per clinic with one `is_lead`, seeded ratings in a 4.2–4.9 band,
 facility tags, 3–5 FAQs per clinic, and slots for the next 3 days.
 **Slots MUST be generated relative to run date**, never fixed timestamps —
 a reseed on demo morning must not produce yesterday's availability.
 Dr. Kavya must exist as a real seeded doctor row (she is already named in
-`010`'s alerts-strip example copy).
+the alerts-strip example copy).
+
+### Booking lifecycle seed (`012`, added 6 Sep 2026)
+
+Four additions on top of the directory above.
+
+- **`clinics.consult_fee_inr`** — seeded in a believable **₹300–₹800** band,
+  varying by clinic and specialty. Ten identical fees read as placeholder data.
+- **`clinics.cancellation_window_min`** — **120** for every seeded clinic
+  except **one seeded at 240**, so the per-clinic path is actually exercised
+  rather than merely present.
+- **~30% of generated slots pre-marked `is_booked`.** `012` B4 renders taken
+  slots struck through rather than hiding them; with an empty seed that state
+  is invisible until someone stages it by hand mid-demo.
+- **`appointments` still seeds zero rows** (`012` FR-041, unchanged from `010`
+  FR-008). Booking live is the meetup beat, and reset returns everything to
+  unbooked. The directory is inventory; appointments are user data.
 
 ---
 
@@ -104,7 +133,7 @@ owner's own card can show open chips.
 | Blood group | O+ *(illustrative — any value is fine, just needs to be set)* |
 | Allergies | **Penicillin** |
 | Conditions | **Type 2 Diabetes Mellitus** |
-| ABHA no. | blank (manual field, per `001` — no ABHA in Track A) |
+| ABHA no. | blank (manual field, per `001` — the seed asserts no ABHA; real linking is `002`/`003`) |
 | Emergency contacts | Rohan S. (son) — priority 1; Prakash P. (husband) — priority 2 |
 
 **Records — 10 total across Jan 2025–Jul 2026 (18 months, locked):**
@@ -241,10 +270,10 @@ this field order is what she's reviewing, not a placeholder.
   semantics), per `001` FR-017.
 - **FR-002**: All facility names in seed data MUST be fictional (see
   Guardrail above); this is enforced by using only the approved fictional
-  facility set — the four record-bearing names plus `011`'s approved
+  facility set — the four record-bearing names plus `012`'s approved
   directory additions — never ad hoc names. Extended 20 Aug 2026 to cover
-  clinic/doctor **imagery** (`011` FR-010) and seeded **coordinates**
-  (`011` FR-011), not just names.
+  clinic/doctor **imagery** (`012` FR-025) and seeded **coordinates**
+  (`012` FR-024), not just names.
 - **FR-003**: Asha MUST have exactly 2 active meds, both at the 20:00 slot
   (Metformin `stock_count = 4`, threshold 5; Sitagliptin healthy stock), so
   the 8pm reminder opens a bundled two-item checklist (`006`), only Metformin
@@ -263,10 +292,10 @@ this field order is what she's reviewing, not a placeholder.
   (`is_test = true`, dated the card-link day) and no non-test scan events.
 - **FR-008**: `appointments` (`010`) MUST be seeded **empty** — booking live
   is the meetup demo beat — and re-running `seed_demo.py` MUST clear any
-  appointments booked during a demo. The `011` directory tables are the
+  appointments booked during a demo. The `012` directory tables are the
   opposite: they MUST be fully seeded, because they are inventory rather than
   user data.
-- **FR-009**: `011`'s `slots` MUST be generated relative to the seed run date,
+- **FR-009**: `012`'s `slots` MUST be generated relative to the seed run date,
   never as fixed timestamps, so a reseed on demo morning yields future
   availability (this is NFR-001's determinism applied to a moving reference
   point — same relative shape every run, not the same absolute instants).

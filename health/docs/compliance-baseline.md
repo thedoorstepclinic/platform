@@ -1,6 +1,6 @@
 # Compliance baseline — ABDM M1/M2/M3, WASA, DPDP
 
-**Verified: 10 Aug 2026. Re-verify before any Track B planning session, and
+**Verified: 10 Aug 2026. Re-verify before any ABDM/WASA planning session, and
 before quoting any version number or date in a pitch.**
 
 This document holds the *facts* — external requirements, with sources and the
@@ -45,7 +45,7 @@ with a structured integration layer. WASA alone is 3–6 weeks depending on scop
 and remediation speed.
 
 > This is the number that matters for planning. Any roadmap that shows TDC
-> Health in ABDM production less than two quarters after Track B starts is
+> Health in ABDM production less than two quarters after ABDM work starts is
 > wrong, and saying otherwise in a pitch is a claim we cannot defend
 > (Principle VI).
 
@@ -68,7 +68,7 @@ Assessed scope:
 The highest-frequency killer in this class of app is broken object-level
 authorization (OWASP API #1): an endpoint that trusts a client-supplied ID
 instead of deriving the caller's permitted scope server-side. That is why
-Principle X exists and why it binds on Track A even though Track A is a demo.
+Principle X exists and why it binds unconditionally (constitution v3.0.0 — the binding classes were abolished 6 Sep 2026).
 
 ## 4. Fidelius — PHI encryption in transit
 
@@ -89,7 +89,7 @@ not recognized"). Base the implementation on the official Fidelius CLI
 reference parameters and key-generation routines. Python option:
 `dimagi/pyfidelius`. Reference: `mgrmtech/fidelius-cli`.
 
-Track A does no ABDM exchange, so Fidelius is not built now — but see
+No ABDM exchange is built yet — it is gated on certification, not deferred by choice — so Fidelius is not built now. But see
 Principle XIII's non-foreclosure clause.
 
 ## 5. FHIR profile conformance
@@ -104,7 +104,7 @@ Clinical and billing artifacts are profiles on the FHIR R4.0.1 `Composition`
 resource.
 
 **Pin: v6.5.0.** Do not build against the v7.0.0 draft. Re-check the released
-version at the top of any Track B FHIR work — a draft becoming a release is
+version at the top of any FHIR work — a draft becoming a release is
 exactly the kind of change that invalidates a pin silently.
 
 ## 6. Consent artifacts, retention, erasure
@@ -139,7 +139,7 @@ restated here because conflating them is the most likely compliance error.
   third-party lab/diagnostic integrations — **vendor contract alignment is the
   highest-risk item**, which is a commercial task, not an engineering one.
 
-TDC is a Data Fiduciary. Track A is pre-launch with seeded fictional data and
+TDC is a Data Fiduciary. The project is pre-launch, currently running on seeded fixture data, and
 no real data principals, so no obligation is live yet; the obligations attach
 at first real user.
 

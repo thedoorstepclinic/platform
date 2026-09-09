@@ -1,8 +1,8 @@
-# Feature Specification: ABHA Sync — Subscription-Based Record Inflow (Track B)
+# Feature Specification: ABHA Sync — Subscription-Based Record Inflow
 
 **Feature Branch:** `003-abdm-sync-subscription`
 **Version:** 0.2 · **Created:** 2026-07-15 (v0.1 uploaded doc) · **Revised:** 2026-07-15
-**Status:** Draft — Track B, Sprint 4+ (post-funding). Zero code before the
+**Status:** Draft — **GATE: ABDM certification** (WASA audit is a precondition for M1; production access is four gates out — `docs/compliance-baseline.md`). Gate owner: Adi. In scope like every other feature; blocked on an external approval, not deferred by choice. Zero code before the
 tenant-isolation audit (Sprint 1) passes — ABDM sandbox credentials arrived
 2026-08-17 (see `CLAUDE.md` changelog), so that half of the prerequisite is
 satisfied, but Sprint 1 (post-funding) has not started, so this feature
@@ -250,7 +250,7 @@ copy must never describe the caregiver as the one consenting for the elder).
 
 ## 10. Out of scope
 
-Any Track A / demo work (demo timeline stays 100% seeded) · delegated adult
+Fixture-only timeline behaviour (`DEMO_MODE` seeds stay seeded) · delegated adult
 consent inside ABDM (does not exist in production ABDM; family layer is
 TDC's own grant model, see `001`) · minor/dependent ABHA flows (Phase 2) ·
 outbound M2 publishing (separate spec) · scan-and-share QR flows (not to be

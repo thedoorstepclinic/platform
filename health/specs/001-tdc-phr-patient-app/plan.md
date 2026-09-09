@@ -1,18 +1,25 @@
-# Implementation Plan: TDC PHR Patient App — Prototype (Track A)
+# Implementation Plan: TDC PHR Patient App — Core Application
 
 **Feature:** `001-tdc-phr-patient-app` (directory-scoped; trunk-based on `main`
 — no per-feature git branch exists post-monorepo-migration, see note below)
 · **Date:** 2026-07-15 · **Replanned:** 2026-08-15
-**Spec:** [`spec.md`](./spec.md) · **Constitution:** [`../../.specify/memory/constitution.md`](../../.specify/memory/constitution.md) (v2.0.1)
+**Spec:** [`spec.md`](./spec.md) · **Constitution:** [`../../.specify/memory/constitution.md`](../../.specify/memory/constitution.md) (**v3.0.0** — binding classes abolished 6 Sep 2026; all fifteen principles bind)
 
 ## Summary
-Build a seeded, demo-grade PHR family app for the investor pitch (16 Aug 2026)
-and the meetup loop. One **Flutter** codebase (Android + web) talks to a
+Build the core PHR family app to production. One **Flutter** codebase (Android + web) talks to a
 Django/DRF Core API over SimpleJWT. A separate FastAPI **Fastlane** service
 serves the emergency responder page from a denormalized snapshot so it
 survives Core API downtime. The golden path — home → timeline →
 summary/PDF → meds/reminder → NFC card scan + family blast → trust screen —
-must run reliably in 5 minutes and reset in one command.
+must run reliably in 5 minutes and reset in one command — retained as the
+end-to-end acceptance path, not merely a pitch script.
+
+> **Rescoped 2026-09-06 (constitution v3.0.0).** This plan was written against
+> "seeded, demo-grade… for the investor pitch". The track split is abolished,
+> so **this is the production plan** — the architecture below is unchanged and
+> was always production-shaped; what changes is that demo-grade is no longer an
+> acceptable answer anywhere in it, and auth hardening is in scope rather than
+> deferred. Seeded data is a `DEMO_MODE` fixture, off by default.
 
 **Replan note:** This plan was regenerated on 2026-08-15 to (1) replace the
 Expo React Native / NativeWind stack with Flutter per `CLAUDE.md`'s
@@ -55,7 +62,7 @@ still names a branch that was never created, which is worth a fix whenever
 - **Constraints:** Responder page <2s on 4G, zero-JS-readable; Fastlane
   independent uptime budget; elderly-first accessibility; Fastlane responder
   page is HTTPS-only, carries no PHI in query strings/logs/referrer, and is
-  non-indexable (Principle XIII, Track A clause).
+  non-indexable (Principle XIII, public-page clause).
 - **App display name:** **TDC Health** (resolved 15 Jul 2026) — used for APK
   label and app config.
 
@@ -64,42 +71,55 @@ still names a branch that was never created, which is worth a fix whenever
 constitution v2.0.1 — the previous version of this plan only checked
 Principles I–VII.*
 
-**Core principles — bind unconditionally.**
+**Product principles.**
 | Principle | Status | How the plan satisfies it |
 |-----------|--------|---------------------------|
-| I — Emergency Flow Is Sacred | ✅ | Fastlane is a separate service reading a snapshot; task order front-loads it; cut rule encoded in `tasks.md`. |
+| I — Emergency Flow Is Sacred | ✅ | Fastlane is a separate service reading a snapshot; task order front-loads it. **Now a stability rule, not a triage rule** (v3.0.0): the slip rule it used to anchor is repealed, and the emergency flow is simply never destabilised or reordered behind anything. |
 | II — Consent Is a Standing Grant | ✅ | `caregiver_grants` write on assisted-add is the consent moment; no card-tap copy anywhere; Fastlane logs "access", never "consent". |
 | III — Copy Discipline | ✅ | Approved/banned lists enforced in a shared copy module + a lint check task. |
-| IV — Demo-Grade, Stated Honestly | ✅ | Mocks (OTP `000000`, manual ABHA, fake HMS webhook) tagged `# DEMO-MODE` with a replacement note (Principle XIV). |
+| IV — Production-Grade, With Demo Data Switchable | ✅ | Fixtures (OTP `000000`, manual ABHA, fake HMS webhook) sit behind `DEMO_MODE`, **off by default**, each tagged `# DEMO-MODE` with its real path (Principle XIV). Each substitutes data, not behaviour — none skips authorization, logging or validation — and removing the switch leaves every feature working. |
 | V — Reset-in-One-Command | ✅ | `seed_demo.py` is a D1–2 deliverable and a demo-day checklist item. |
 | VI — Data Sovereignty Framing | ✅ | Trust screen copy limited to approved claims; hosting in Bangalore droplet; `access_logs` (below) makes "every access is logged" literally true. |
 | VII — Elderly-First Accessibility | ✅ | Large type/tap-target tokens baked into a shared Flutter `ThemeData`. |
 | VIII — Home Stays Quiet | ✅ | Home = family cards + alerts strip only (spec §4.1); no feed, no "did you know" surface introduced by this plan. |
 | IX — One Snapshot, Never a Parallel Template | ✅ | Emergency-profile preview and Health Summary both render from the same structured source Fastlane/PDF use — no second hand-maintained template. |
 
-**Compliance principles — binding class checked.**
+**Compliance principles — same binding force; no classes (v3.0.0).**
 | Principle | Status | How the plan satisfies it |
 |-----------|--------|---------------------------|
-| X — Authorization Is Derived, Never Accepted `[A]` | ✅ (was GAP) | FR-022. Every DRF viewset touching `profiles`, `records`, `medications`, `emergency_profiles`, `cards`, `scan_events` overrides `get_queryset()` to the caller's own profiles ∪ profiles reachable via an unrevoked `caregiver_grants` row. `get_object()` resolves out of that scoped queryset — never `Model.objects.get(pk=...)` + a permission check. See `contracts/core-api.md` §Authorization Scoping. |
-| XI — Every PHI Access Leaves a Log `[A]` | ✅ (was GAP) | FR-021. New `access_logs` table (data-model.md), written in the same transaction as the access; a failed log write fails the request. Core API writes on every PHI read/write; Fastlane writes one row per valid scan (actor=anonymous, source_service=fastlane), distinct from `scan_events` (card mechanics). This is what makes the Trust screen's "every access is logged" claim (Principle VI) true rather than aspirational. |
-| XII — FHIR Is Pinned `[A]` when FHIR appears | N/A | Track A emits no FHIR (ABHA stays a free-text field). Re-check if any FHIR fixture is ever added. |
-| XIII — PHI Does Not Cross a Boundary in Plaintext `[B→A]` | ✅ (Track A clause) | Fastlane is HTTPS-only; PHI is rendered only in the HTML body, never in the query string (only `ctr`/`cmac` are); responses send `X-Robots-Tag: noindex`; no PHI in access/error logs. See `contracts/fastlane-api.md`. |
-| XIV — Demo Shortcuts Are the Audit Remediation List `[A]` | ✅ | Every `# DEMO-MODE` tag carries what's unsafe and its Track B replacement on the same or next line (format enforced by the copy-lint task). |
-| XV — Consent Artifacts, Retention, and Erasure `[B→A]` | ✅ | `records.source` carries provenance; records remain individually deletable (`DELETE /api/v1/records/{id}/`); `emergency_payload` is regenerable from source tables, not a second copy of record content. |
+| X — Authorization Is Derived, Never Accepted | ✅ (was GAP) | FR-022. Every DRF viewset touching `profiles`, `records`, `medications`, `emergency_profiles`, `cards`, `scan_events` overrides `get_queryset()` to the caller's own profiles ∪ profiles reachable via an unrevoked `caregiver_grants` row. `get_object()` resolves out of that scoped queryset — never `Model.objects.get(pk=...)` + a permission check. See `contracts/core-api.md` §Authorization Scoping. |
+| XI — Every PHI Access Leaves a Log | ✅ (was GAP) | FR-021. New `access_logs` table (data-model.md), written in the same transaction as the access; a failed log write fails the request. Core API writes on every PHI read/write; Fastlane writes one row per valid scan (actor=anonymous, source_service=fastlane), distinct from `scan_events` (card mechanics). This is what makes the Trust screen's "every access is logged" claim (Principle VI) true rather than aspirational. |
+| XII — FHIR Is Pinned | N/A | This feature emits no FHIR (ABHA is a free-text field here; real linking is `002`/`003`). Binds the moment any FHIR appears, mocks and fixtures included. |
+| XIII — PHI Does Not Cross a Boundary in Plaintext | ✅ (public-page clause) | Fastlane is HTTPS-only; PHI is rendered only in the HTML body, never in the query string (only `ctr`/`cmac` are); responses send `X-Robots-Tag: noindex`; no PHI in access/error logs. See `contracts/fastlane-api.md`. |
+| XIV — Every Demo Path Is Inventoried | ✅ | Every `# DEMO-MODE` tag carries what it substitutes and its real path, plus the blocking gate and gate owner where that real path is unbuilt (format enforced by the copy-lint task, T032). Each sits behind `DEMO_MODE`, off by default; removing the switch must leave the feature working. |
+| XV — Consent Artifacts, Retention, and Erasure | ✅ | `records.source` carries provenance; records remain individually deletable (`DELETE /api/v1/records/{id}/`); `emergency_payload` is regenerable from source tables, not a second copy of record content. |
 
 **Compliance checklists** (Development Workflow §6)
 - Touches PHI, auth, grants, and Fastlane → **Yes.**
   `specs/001-tdc-phr-patient-app/checklists/security.md` generated and
-  reviewed against this plan 2026-08-17. Result: 2 `[A]`-blocking GAPs
+  reviewed against this plan 2026-08-17. Result: 2 blocking compliance GAPs
   (Authorization — negative-auth test, expected until T005/T009 ship; Audit
   — file/PDF reads need an explicit logged-read path before T011/T015), plus
   12 non-blocking GAPs (mostly config/deploy discipline not yet written into
-  this plan). One drift the review caught and fixed directly:
+  this plan). **Both blocking compliance GAPs now have tasks (2026-09-06):** a
+  `/speckit-analyze` pass found they had been *recorded and then never
+  scheduled* — the finding was the scheduling, not the design. **T010a**
+  covers Principle X + XI verification (negative-auth `404`s, revocation
+  denying on the next request, one-`access_logs`-row-per-`[PHI]`-request, a
+  rolled-back request on log-write failure, and a static check against
+  `objects.all()`), with **T042a** as the by-hand rehearsal counterpart.
+  **T010b** covers the binary logged-read path and blocks T011/T015 — files
+  and `summary.pdf` are served only through a scoped Django view that logs
+  before streaming, with **no direct media URLs and no signed-URL hand-off**,
+  since a signed URL logs the issuing rather than the reading. A Health
+  Summary read logs `object_type='health_summary'` /
+  `purpose='summary_export'`, distinct from a profile read. One drift the
+  review caught and fixed directly:
   `scan_events.is_test` existed in `CLAUDE.md`/`007` but was missing from
   `001/data-model.md` — added.
 - ABDM surface (ABHA, FHIR, consent artifacts, HIP/HIU)? → **No.** The ABHA
   field is manual free text with no FHIR, consent-artifact, or ABDM-network
-  call in this feature (that's `003-abdm-sync-subscription`, Track B). No
+  call in this feature (that's `003-abdm-sync-subscription`, gated on ABDM certification). No
   `checklists/abdm.md` required for `001`.
 
 No unjustified violations → Complexity Tracking empty.
@@ -154,7 +174,7 @@ pattern for Principle X; same-transaction `access_logs` write for Principle XI.
 card-tap-as-consent surface introduced, and the two principles that were
 previously undesigned (X, XI) now have a concrete mechanism. `checklists/
 security.md` was generated and reviewed against this plan 2026-08-17 (see
-Compliance checklists above); 2 `[A]`-blocking GAPs remain open there, tracked
+Compliance checklists above); 2 blocking compliance GAPs remain open there, tracked
 for Phase A/B/C.
 
 ## Phase 2 — Task Planning Approach
@@ -175,6 +195,6 @@ design rather than justified as exceptions)*
 - [x] Phase 1 complete
 - [x] Constitution re-check passed
 - [x] Compliance checklist(s) reviewed against this plan — `checklists/security.md`
-      generated 2026-08-17; 2 `[A]`-blocking GAPs remain open (tracked above
+      generated 2026-08-17; 2 blocking compliance GAPs remain open (tracked above
       and in the checklist itself), non-blocking GAPs tracked for Phase A/B/C
 - [x] Ready for `/tasks` — done, `tasks.md` regenerated 2026-08-15 against this replan

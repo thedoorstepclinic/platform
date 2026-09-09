@@ -2,7 +2,13 @@
 
 **Feature Branch:** `010-consult-booking-queue`
 **Created:** 2026-08-01
-**Status:** Draft
+**Status:** **Superseded** by [`012-appointment-booking`](../012-appointment-booking/spec.md)
+(6 Sep 2026) — `012` takes the whole flow, front to back, and deletes the
+`010`/`011` ownership split rather than maintaining it. **This file is retained
+as the decision record, not as an implementation reference:** the 1 Aug unlock
+provenance below is the reason booking exists at all, and if that `CLAUDE.md`
+changelog entry is ever reverted, `012` reverts with it. Every FR here is mapped
+forward in `012` §Carried forward — none were dropped.
 **Owner:** Adi (dev) / Soham (meetup script)
 **Unlock record:** consult booking + queue tracking were on the banned list;
 unlocked by explicit owner decision 1 Aug 2026 (see `CLAUDE.md` changelog for
@@ -20,6 +26,14 @@ that a real directory exists; and the clinic list this spec described as
 "seeded list of 3 fictional clinics" is superseded by `011`'s ~10-clinic seeded
 directory. Everything else in this spec — the fences, the queue simulation, the
 🔒 pay-at-clinic badge, the two-script model — is unchanged.
+
+> **Vocabulary note (6 Sep 2026).** This file predates the abolition of the
+> Track A / Track B split (constitution v3.0.0). Its "Track A" / "Track B"
+> language is **historical** and deliberately left as written — this is a
+> decision record, and rewriting the words would falsify what was decided and
+> why. Read every "Track B does it later" here as **"in scope, sequenced by
+> dependency, and gated only where an external approval blocks it"**. The live
+> spec is [`012-appointment-booking`](../012-appointment-booking/spec.md).
 
 ## Why this exists (be honest with ourselves)
 

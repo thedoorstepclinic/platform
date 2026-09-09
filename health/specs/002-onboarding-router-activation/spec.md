@@ -1,10 +1,10 @@
-# Feature Specification: Onboarding — Identity, Emergency Card & ABHA Activation (Track B)
+# Feature Specification: Onboarding — Identity, Emergency Card & ABHA Activation
 
 **Feature:** `002-onboarding-router-activation` (directory name retained for
 link stability; the "router" screen it was named for is removed — see
 §Supersession)
 **Created:** 2026-07-15 · **Rewritten:** 2026-08-18
-**Status:** Active — Track B (production). Supersedes the Track A demo login.
+**Status:** Active. Supersedes the earlier demo login (`009` S1, ceded 6 Sep 2026).
 **Owner:** Adi (dev) / Soham (copy)
 **Depends on:** [`001-tdc-phr-patient-app`](../001-tdc-phr-patient-app/spec.md) —
 reuses its `profiles` / `caregiver_grants` model.
@@ -24,15 +24,25 @@ retains Health Summary, Trust, and Settings.
 > family-QR mechanisms survive unchanged but move out of the onboarding spine
 > (§Post-Onboarding, Not Onboarding).
 
-> **Governance (owner direction, 2026-08-18).** **Tracks stay separate.**
-> Track A completes first, then Track B's foundation, and so on. The
-> constitution (`.specify/memory/constitution.md`) keeps its per-principle
-> binding classes (`[A]` / `[B→A]` / `[B]`) — they are not merged. The only
-> permitted crossover is **one or two individual FRs slipping from B into A**,
-> named explicitly when it happens; a track boundary is not renegotiated
-> wholesale. A Track B constitution still needs ratifying before compliance
-> testing; until then this spec carries the existing consent and copy
-> discipline forward by intent, and the ratified document wins on conflict.
+> **~~Governance (owner direction, 2026-08-18)~~ — VOID as of 2026-09-06.**
+> This clause read: *"Tracks stay separate. Track A completes first, then
+> Track B's foundation… the constitution keeps its per-principle binding
+> classes (`[A]` / `[B→A]` / `[B]`) — they are not merged. The only permitted
+> crossover is one or two individual FRs slipping from B into A."*
+>
+> **Owner decision, 6 Sep 2026: the track split is abolished entirely.** One
+> project, built to production; every feature a priority with its own space.
+> Constitution **v3.0.0** deletes the binding classes — all fifteen principles
+> bind unconditionally — so there is no boundary left to renegotiate and no
+> "Track B constitution" to ratify: **this is the only constitution the project
+> has.** The B→A slip mechanism is moot; the one crossover it was used for
+> (FR-024a → `001` FR-023) had already been taken and stands on its merits.
+>
+> Nothing in this spec's *content* changes as a result. It was already written
+> to production intent — 6-digit OTP with cooldown and attempt cap, Aadhaar
+> never persisted, platform authentication, no pre-checked consent. What
+> changes is that those are no longer a future track's obligations that this
+> spec anticipates; they bind now, like everything else.
 
 ---
 
@@ -68,7 +78,7 @@ stay with [`007-emergency-profile-card-consent`](../007-emergency-profile-card-c
 - Q: Liveness / presence verification — keep or cut? → A: ~~Keep~~ → **Cut** (reversed same session). Aadhaar eKYC alone provides identity assurance; no biometric capture is built.
 - Q: Where does the card photo come from? → A: **The user chooses it themselves.** eKYC MUST NOT supply the card photo, even though its response contains one.
 - Q: Transactional email provider? → A: **Self-hosted on our own server** — keeps mail in-country, consistent with "stored only in India".
-- Q: Merge Track A and Track B governance? → A: **No — keep all tracks separate.** Complete Track A, then Track B's foundation, and so on. One or two FRs may slip B→A; that is the only crossover. The constitution keeps its per-principle binding classes.
+- Q: Merge Track A and Track B governance? → A: ~~**No — keep all tracks separate.**~~ → **REVERSED 6 Sep 2026: the split is abolished outright.** One project, production, no tracks, no binding classes (constitution v3.0.0). See the voided governance block above.
 - Q: 3D card, or something cheaper? → A: **2.5D via an animation framework.** The user should *feel* their emergency card during signup.
 - Q: Progress bar fidelity? → A: **Basic for now**, refined after a UX study.
 
@@ -290,7 +300,7 @@ users already have from UPI.
 
 ---
 
-## Security & Compliance Constraints (Track B — binding)
+## Security & Compliance Constraints (binding)
 
 ### Aadhaar number handling
 - **Never persisted.** No column, no cache, no shared-preferences write.
@@ -341,7 +351,7 @@ Adopting Firebase Auth also displaces **Django/DRF + SimpleJWT**, a locked
 stack decision. That is a `CLAUDE.md` change with a changelog entry, not an
 implementation detail.
 
-### Carried forward from Track A
+### Carried forward from `001`
 - **Principle X:** every new endpoint derives its queryset from the caller's
   own profiles ∪ unrevoked `caregiver_grants`. No `objects.all()`.
 - **Principle XI:** one `access_logs` row per PHI access, same transaction.
@@ -583,7 +593,7 @@ path lets one person's ABHA attach to another person's profile.
 
 **`users` gains `email`** — nullable, unique-if-present. Recovery and receipts
 only, never a login identity. Directly addresses the account-recovery gap in
-`docs/track-b-backlog.md` §1.
+`docs/backlog.md` §1.
 
 **`cards` splits into card identity vs chip binding.** The current table
 conflates them (`uid` as PK), which the digital-first decision makes
@@ -638,7 +648,7 @@ grant. Neither a chip tap nor a link open is consent (`001` Principle II).
 | **Self-hosted mail — port 25 + deliverability** | Adi | DigitalOcean blocks outbound port 25 on new droplets by default; needs a support request. Then SPF + DKIM + DMARC and warmed IP reputation, or receipts land in spam. Resolvable, but it is ops work, not a config line. |
 | Carousel content — which 3–4 frames | Soham | Must not imply capabilities that don't exist yet. |
 | Physical chip fulfilment — on-demand vs. marketing hook | Adi/Soham | Digital-first confirmed. No fulfilment state machine yet; `card_chips` must not preclude one. |
-| Track B constitution ratification | Adi | Tracks stay **separate**; binding classes retained. Ratify before compliance testing. |
+| ~~Track B constitution ratification~~ | — | **CLOSED 6 Sep 2026.** No second constitution exists or will: v3.0.0 is the only one, and all fifteen principles already bind this spec. |
 | Animation framework for the 2.5D card | Adi | Respect the 4h/day ceiling. |
 
 ---
@@ -648,13 +658,13 @@ grant. Neither a chip tap nor a link open is consent (`001` Principle II).
 | File | Change |
 |---|---|
 | `009-utility-screens/spec.md` | Cede Splash + Login (S1); drop its FR-001/FR-002; retitle to Health Summary / Trust / Settings. |
-| `001-.../spec.md` §4.1 | Router reference → card-step persona signal; add app-level walkthrough + Add-family button alongside profile-level chips. |
+| `001-.../spec.md` §4.1 | ✅ **Applied 2026-09-06.** Router reference → `profiles.relation` persona signal (the old text cited a `002` section that never existed, describing a screen this rewrite deleted). Until `002` ships, the signal comes from seeded/assisted-add `relation` rather than being computed at runtime. **FR-024a (persistent Add-family action)** is carried as `001` FR-023 — taken as a named B→A slip on 6 Sep under the then-live governance clause, hours before that clause was voided. It stands on its merits either way: Loop 1's prompt resolves away once a second profile exists, and the durable affordance is what serves the caregiver who returns weeks later. **FR-024b (first-run walkthrough) did not slip**: it explains an invite-out / request-in flow that is not built yet, so shipping it would walk a user through capabilities that don't exist. It lands when that flow does — sequencing, not tracks. |
 | `001-.../data-model.md` | `cards` split; `emergency_payload` re-key; `users.email`; Google credential link; ABHA uniqueness constraint. |
 | `007-emergency-profile-card-consent/spec.md` | Card manager must handle a chipless card; add link rotation; no rate limit on valid reads. |
 | `008-navigation-app-shell/spec.md` | Persistent Add-family action + first-run walkthrough must fit hub-and-spoke without a tab bar. |
 | `002/flowchart.md` | All three diagrams redrawn — router node gone, card step added, ABHA scoped to account holder. |
-| `health/CLAUDE.md` | Track B activation, cards model, `users.email`, Google credential, platform-auth app lock, screens list, auth-provider decision if Firebase wins, changelog entry. |
-| `.specify/memory/constitution.md` | Ratify a Track B constitution before compliance testing. Binding classes **retained** — tracks are not merged. |
+| `health/CLAUDE.md` | Cards model, `users.email`, Google credential, platform-auth app lock, screens list, auth-provider decision if Firebase wins, changelog entry. |
+| `.specify/memory/constitution.md` | ✅ **Done 6 Sep 2026 — v3.0.0.** Not the ratification this row asked for: the split was abolished instead, so the binding classes are gone rather than retained. |
 | `seed_demo.py` | Same-day rule on any model change. |
 
 ---

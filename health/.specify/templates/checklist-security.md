@@ -9,12 +9,19 @@ transit and at rest, session management, API security. One critical finding
 stalls ABDM certification — see `docs/compliance-baseline.md` §3.
 
 Mark each item **PASS**, **N/A** (with a reason), or **GAP** (with an owner).
-A `GAP` on any item marked `[A]` blocks implementation. A `GAP` on `[B→A]` is
-allowed only if the non-foreclosure clause still holds — say why.
+**Every item blocks implementation** — the `[A]` / `[B→A]` / `[B]` binding
+classes were abolished 6 Sep 2026 (constitution v3.0.0), so there is no longer
+a non-blocking class of compliance gap. An item may be **N/A** only when this
+feature genuinely has no such surface, with the reason stated. "For later" is
+not a reason.
+
+*(Repealed 6 Sep 2026: this previously read "a `GAP` on `[B→A]` is allowed
+only if the non-foreclosure clause still holds". No gap is allowed on that
+basis any more.)*
 
 ---
 
-## Authorization — Principle X `[A]`
+## Authorization — Principle X
 
 - [ ] Every new/modified DRF viewset overrides `get_queryset()` with a
       server-derived scope filter (caller's profiles + unrevoked
@@ -36,9 +43,14 @@ allowed only if the non-foreclosure clause still holds — say why.
       project-wide default to be non-public.
 - [ ] Endpoints intended to be public are listed here explicitly, with why.
 - [ ] Token lifetime and refresh behaviour stated in the plan.
-- [ ] Logout / revoke path exists and is described (even if Track B).
-- [ ] Any auth shortcut is tagged `# DEMO-MODE` with its Track B replacement
-      (Principle XIV `[A]`).
+- [ ] Logout / revoke path exists, is described, and is built.
+- [ ] Any auth shortcut is behind `DEMO_MODE`, off by default, tagged
+      `# DEMO-MODE` with its real path named — and its blocking gate + gate
+      owner if that real path is unbuilt (Principle XIV). A shortcut that
+      cannot be switched off is a defect, not a shortcut.
+- [ ] Rate limiting, lockout, session and token handling are specified and
+      built for the surfaces this feature owns. "Auth hardening is Track B"
+      is repealed (constitution v3.0.0).
 
 ## PHI handling — Principle XIII
 
@@ -51,7 +63,7 @@ allowed only if the non-foreclosure clause still holds — say why.
 - [ ] Payload assembly is separable from transport — nothing assumes a bundle
       is readable at handoff (non-foreclosure for Fidelius).
 
-## Audit — Principle XI `[A]`
+## Audit — Principle XI
 
 - [ ] Every PHI read and write in this feature emits an `access_logs` row:
       actor, subject profile, action, object type + id, timestamp, purpose,
@@ -80,9 +92,9 @@ allowed only if the non-foreclosure clause still holds — say why.
       or committed config.
 - [ ] `DEBUG` off by default outside local; no debug endpoint reachable.
 - [ ] CORS/ALLOWED_HOSTS are allowlists, not wildcards — or tagged
-      `# DEMO-MODE` with the Track B replacement.
+      `# DEMO-MODE` with its real path and, if unbuilt, its gate + owner.
 
-## Copy — Principle III `[A]`
+## Copy — Principle III
 
 - [ ] No cipher names in UI copy ("AES-256", "military-grade").
 - [ ] No banned phrases: "auto consent", "blockchain"/"Hyperledger", "ABDM

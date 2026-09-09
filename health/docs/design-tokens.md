@@ -44,7 +44,7 @@ allergy red is `alert` on white, not white on red).
 
 ## Type
 
-Font: system default stack (SF/Roboto) — no custom font in Track A
+Font: system default stack (SF/Roboto) — no custom font
 (boring/already-paid-for). Elderly-first scale — **base is 18, not 16.**
 
 | Token | Size/line | Weight | Use |

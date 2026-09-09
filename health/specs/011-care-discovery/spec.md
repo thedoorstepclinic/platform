@@ -2,7 +2,17 @@
 
 **Feature Branch:** `011-care-discovery`
 **Created:** 2026-08-20
-**Status:** Draft
+**Status:** **Superseded** by [`012-appointment-booking`](../012-appointment-booking/spec.md)
+(6 Sep 2026) — `012` absorbs D1–D3 as B1–B3 and owns the flow end to end.
+**This file is retained as the decision record, not as an implementation
+reference:** the eight decisions of 20 Aug — including the three owner
+overrides (ratings, HID chip, real map + Directions) and their written
+mitigations — are what `012` inherits, and reverting any of them reverts the
+matching section of `012`. Every FR here is mapped forward in `012`
+§Carried forward. Two things `012` deliberately changes: `GET /doctors/{id}/slots`
+now returns taken slots too (rendered struck-through, not omitted), and D3 is
+never auto-skipped for single-doctor clinics — the open decision that asked is
+closed.
 **Owner:** Adi (dev) / Soham (meetup script)
 **Decision record:** owner decisions 20 Aug 2026 — discovery specced as **step 1
 of the booking flow**, not as a Home surface or a nav destination. Eight
@@ -14,6 +24,14 @@ feeds; amended by this spec) · [`008`](../008-navigation-app-shell/spec.md)
 (routes, sheet conventions, four screen states) ·
 [`004`](../004-seed-data-and-summary/spec.md) (fictional-facility rule, seed
 ripple) · [`001`](../001-tdc-phr-patient-app/spec.md) (P1 slot, scope fences).
+
+> **Vocabulary note (6 Sep 2026).** This file predates the abolition of the
+> Track A / Track B split (constitution v3.0.0). Its "Track A" / "Track B"
+> language is **historical** and deliberately left as written — this is a
+> decision record, and rewriting the words would falsify what was decided and
+> why. Read every "Track B does it later" here as **"in scope, sequenced by
+> dependency, and gated only where an external approval blocks it"**. The live
+> spec is [`012-appointment-booking`](../012-appointment-booking/spec.md).
 
 ## Why this exists
 

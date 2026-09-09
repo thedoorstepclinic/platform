@@ -1,9 +1,9 @@
 # Data Model: TDC PHR Prototype
 
-Prototype schema. Track B will re-model for production (encryption-at-rest
+Schema of record. **Note (6 Sep 2026):** this file previously opened "Prototype schema. Track B will re-model for production" — there is no re-model coming, so this is the production schema and changes to it are ordinary migrations. Still open for this feature (encryption-at-rest
 detail, DPDP retention, audit tables). Types are indicative.
 
-**Replanned 2026-08-15:** added `access_logs` (Principle XI, `[A]`-binding —
+**Replanned 2026-08-15:** added `access_logs` (Principle XI —
 already named in `CLAUDE.md`'s global data model, wired into `001` here).
 Every other entity is unchanged from the original schema; access **scoping**
 (Principle X) is an authorization rule enforced in `contracts/core-api.md`'s

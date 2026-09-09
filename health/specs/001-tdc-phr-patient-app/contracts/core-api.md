@@ -3,7 +3,7 @@
 Base: `/api/v1/` · Auth: SimpleJWT (Bearer) except where noted · Format: JSON.
 Prototype-grade; error bodies are indicative.
 
-## Authorization Scoping (Principle X, `[A]`)
+## Authorization Scoping (Principle X)
 Every endpoint below that touches `profiles`, `records`, `medications`,
 `emergency_profiles`, `cards`, or `scan_events` MUST derive its queryset from
 the authenticated caller: **own profiles ∪ profiles reachable through an
@@ -13,7 +13,7 @@ an unfiltered `Model.objects.all()` is a build failure, not a review comment.
 `Model.objects.get(pk=...)` followed by a permission check. A revoked grant
 stops access on the very next request; no cached scope. FR-022, `research.md` R9.
 
-## Access Logging (Principle XI, `[A]`)
+## Access Logging (Principle XI)
 Every endpoint below marked **PHI** writes one `access_logs` row (actor,
 subject profile, action, object type + id, purpose, `source_service =
 "core"`) in the same transaction as the request. A failed log write fails
@@ -105,7 +105,7 @@ carry `is_test=true` and a "Test" chip per `007`).
 
 ## Notes
 - All `# DEMO-MODE` shortcuts (mock OTP, permissive grants) are flagged in
-  code with what's unsafe and its Track B replacement on the same/next line
+  code with what it substitutes and its real path on the same/next line
   (Principle XIV format) — see `research.md` R7.
 - HMS→timeline (P1) lands records with `source = "hms"` via shared DB or a fake
   webhook `POST /api/v1/hms/webhook` (guarded, P1 only).

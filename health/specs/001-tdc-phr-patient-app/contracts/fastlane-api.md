@@ -3,7 +3,7 @@
 Separate service · subdomain `e.thedoorstepclinic.com` · independent uptime
 budget · reads only the `emergency_payload` snapshot (never live Core joins).
 
-## Public-page hardening (Principle XIII, Track A clause)
+## Public-page hardening (Principle XIII, public-page clause)
 HTTPS-only. PHI appears only in the rendered HTML body — never in the query
 string (`ctr`/`cmac` are the only params), never in access/error logs, never
 in a `Referer`-leaking link. Every response (success and neutral page alike)

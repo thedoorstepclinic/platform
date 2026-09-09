@@ -1,9 +1,12 @@
-# Tasks: TDC PHR Patient App — Prototype (Track A)
+# Tasks: TDC PHR Patient App — Core Application
 
 **Input:** `spec.md`, `plan.md`, `data-model.md`, `contracts/`, `quickstart.md`
-**Ordering:** follows the spec build order (D1–D12). `[P]` = parallelisable
-(different files, no dependency). **The emergency flow is never reordered below
-P1 polish** (Constitution Principle I).
+**Ordering:** **by dependency** (constitution v3.0.0 workflow rule 3 — the
+P0/P1 ladder and the cut-from-the-bottom slip rule are repealed; no task is cut
+to fund another). The D1–D12 shape below is retained as a sensible dependency
+order, not a priority ranking. `[P]` = parallelisable (different files, no
+dependency). **The emergency flow is never destabilised or reordered behind
+anything** (Principle I — now a stability rule).
 
 **Regenerated 2026-08-15** against the replanned `001` (Flutter stack,
 `health/apps/health/` + `platform/services/{core-api,fastlane}/` layout
@@ -43,24 +46,83 @@ tracing to gaps a `/speckit-analyze` pass found open in the prior version.
 - [ ] T007 [Data] `emergency_payload` snapshot builder + save signals on
   emergency/med/contact change (FR-010).
 - [ ] T008 [Auth] `POST /auth/otp/request|verify` with mock `000000` (FR-001);
-  tag `# DEMO-MODE` with what's unsafe + the Track B replacement on the
-  same/next line (Principle XIV).
+  behind `DEMO_MODE` (off by default), tagged `# DEMO-MODE` with what it
+  substitutes + its real path on the same/next line (Principle XIV). The real
+  OTP path is `002`'s; this fixture must never be the only path.
 - [ ] T009 [Feature] Profiles CRUD + assisted-add writing `caregiver_grants`
   (FR-002/003 — the consent moment); scoped via T005, logged via T006.
 - [ ] T010 [Seed] `seed_demo.py` v0: Rohan/Asha/Prakash + relations + grants
   (FR-017, Principle V).
+- [ ] T010a [Compliance] **Principle X + XI verification** — the one automated
+  test in this feature, and it exists because FR-022 calls an unscoped result set
+  *a build failure, not a review comment*. pytest + DRF `APIClient`, two seeded
+  users with one grant between them:
+  - **Scoping (X, FR-022):** user B receives `404` — not `403` — on every
+    **[PHI]**-tagged endpoint addressed with user A's ids. Out-of-scope and
+    nonexistent MUST be indistinguishable.
+  - **Revocation (X, FR-004/FR-022):** revoking a grant denies on the **very
+    next request**. No cached scope.
+  - **Logging (XI, FR-021):** each `[PHI]` request writes exactly one
+    `access_logs` row with the right actor/subject/action, and a forced
+    log-write failure **rolls the whole request back** — the guarantee T006
+    makes is otherwise untested.
+  - **Static check:** no viewset under `core-api/phr/` uses `objects.all()` or
+    `Model.objects.get(pk=...)`. Catches the failure at write time rather than
+    at test time.
+
+  Runs at the end of Phase A, after T005/T006/T009. T009 is the only `[PHI]`
+  endpoint in Phase A, so nothing ships unverified for long, and every later
+  `[PHI]` task (T011, T015, T018, T022, T027) extends this test rather than
+  re-deriving the convention. Closes both blocking compliance GAPs in
+  `checklists/security.md` (Authorization — negative-auth test; Audit — the
+  logged-read path, with T010b covering its file/PDF half).
+  *(Suffixed rather than renumbered: `spec.md` and `plan.md` both cite task
+  numbers, and a renumber would ripple into three files.)*
+- [ ] T010b [Compliance] **Logged-read path for binary responses** — closes the
+  second blocking compliance GAP in `checklists/security.md`, recorded 2026-08-17
+  and never scheduled. T006's decorator fires on serializer render; a record
+  file and `summary.pdf` are `FileResponse`/`StreamingHttpResponse`, so the
+  **most sensitive reads in the app are the ones most likely to slip past it.**
+  - **Every file byte is served by a scoped Django view** that logs before it
+    streams. **No direct media URLs, ever** — no `MEDIA_URL` static path, no
+    signed-URL hand-off. A signed URL logs the *issuing*, not the *reading*,
+    and a copied URL is then an unlogged PHI read; the Trust screen's "every
+    access is logged" would be false in exactly the case that matters.
+  - **Web build consequence:** files load through an authenticated `dio`
+    request, not a bare `<img src>` / `<iframe src>`. Flag this at T013 and
+    T016 — it is the one place the web target diverges from Android.
+  - **Throughput:** serving PHI through the app server is the wrong shape at
+    scale and acceptable at current volume. Tag `# DEMO-MODE` naming the real
+    path (an authenticated object-store proxy that still logs). No external
+    gate — this one is ours to build when volume warrants it.
+  - **Log shape:** a Health Summary read logs
+    `object_type='health_summary'`, `object_id=<profile_id>`,
+    `purpose='summary_export'` — deliberately **not** a plain profile read.
+    Exporting a profile's whole clinical history to a shareable PDF is a
+    different event from glancing at the profile, and a caregiver reading the
+    log should see which one happened. `object_type` is already a free string
+    (`data-model.md` §access_logs), so this is a documented value, not a
+    schema change.
+  - **Scope boundary — the export is logged, the share is not.** T016's
+    `share_plus` hand-off leaves the app; where the file then goes is outside
+    TDC's knowledge and MUST NOT be claimed or implied in the log or on the
+    Trust screen. Revisit under Principle XV with DPDP export duties.
+
+  Blocks T011 and T015. Verified by T010a.
 
 ## Phase B — Records (D3–4)
 - [ ] T011 [Feature] Record upload (camera/gallery via `image_picker` +
   `image_cropper`, crop) + type tag + title + date; `POST
-  /profiles/{id}/records/` (FR-005). No OCR. Scoped via T005, logged via T006.
+  /profiles/{id}/records/` (FR-005). No OCR. Scoped via T005, logged via T006;
+  **file reads served through T010b's logged path, never a direct media URL.**
 - [ ] T012 [Feature] Timeline screen newest-first + type filter chips (FR-006).
 - [ ] T013 [P] [Feature] Record detail (full-screen image/PDF, share, delete).
 - [ ] T014 [Seed] Extend seed: Asha 8–10 records / Prakash 3 records.
 
 ## Phase C — Health Summary (D5)
 - [ ] T015 [Feature] `GET /profiles/{id}/summary.pdf` template render (FR-007).
-  Scoped via T005, logged via T006.
+  Scoped via T005, logged via T006 through **T010b's binary path** —
+  `object_type='health_summary'`, `purpose='summary_export'`.
 - [ ] T016 [Feature] Health Summary screen (`pdf` package render) + share-as-PDF
   via `share_plus` (WhatsApp target) — renders from the same field mapping as
   the PDF, no second hand-maintained template (Principle IX).
@@ -132,15 +194,28 @@ booking flow). Neither is enumerated as a task here: each gets its own
 - [ ] T041 [Demo] Record backup screen-recording of full golden path.
 - [ ] T042 [Demo] Airplane-mode / Core-down test (verify Fastlane still
   renders) (NFR-002).
+- [ ] T042a [Demo] **Second-user check, by hand.** Log in as a second account,
+  attempt to open Asha's timeline / summary / card by id, confirm it fails
+  closed. T010a asserts this in CI; this is the demoer having personally
+  watched it fail correctly, so the answer to *"can you see my parent's
+  records?"* at a meetup is first-hand rather than recited. Also written into
+  `quickstart.md` as a standing verification step.
 
 ## Dependency notes
 - T004 blocks T005–T009, T011, T018, T022.
 - T005 (authorization scoping) and T006 (access-log writer) block every
   **[PHI]**-tagged endpoint task: T009, T011, T015, T018, T022, T027.
+- T010b (logged-read path for binaries) blocks T011 and T015 — the two tasks
+  that serve files. Depends on T006.
+- T010a depends on T005, T006, T009, T010b. It blocks nothing — but every `[PHI]`
+  task after it (T011, T015, T018, T022, T027) **extends** it rather than
+  adding a parallel test file. A `[PHI]` endpoint that ships without a case in
+  T010a is the regression this task exists to prevent.
 - T007 (snapshot) blocks T023–T026 (Fastlane reads snapshot only).
 - T023 blocks T024–T026; T027 depends on T023.
-- Cut rule: if a day slips, drop from Phase G bottom-up, then Phase F polish —
-  **never** Phase E.
+- ~~Cut rule: if a day slips, drop from Phase G bottom-up, then Phase F polish.~~
+  **Repealed 6 Sep 2026** (v3.0.0). Nothing is cut. If a day slips, the
+  sequence takes longer; Phase E still never gets destabilised (Principle I).
 
 ## Parallel example
 T004, and once done T013 / T019 / T028 touch different files and can run `[P]`
