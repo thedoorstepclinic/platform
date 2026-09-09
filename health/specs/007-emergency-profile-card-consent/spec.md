@@ -145,6 +145,118 @@ The consent ledger, per `001` FR-003/004:
 
 ---
 
+## Screen 13 — Emergency Alert (added 9 Sep 2026)
+
+**The family-side landing surface after a scan**, at
+`/profile/:profileId/alert/:scanEventId`. Added from a supplied reference
+design. Previously the family blast (`001` FR-014) deep-linked into the card
+manager's scan log — a maintenance screen, not the thing a person opening a
+2am notification needs. This is that thing.
+
+| Element | Behaviour |
+|---|---|
+| **Alert banner** | *"Asha's emergency card was scanned."* + when, + by whom if the responder said. `alert` on `alert-soft`, never white-on-red (Principle VII / `docs/design-tokens.md`). |
+| **Where** | Coarse location when the scanner shared it (*"near Kothrud"*, `001` FR-014), gracefully absent when not. **Plus responder-supplied facility name where given**, clearly labelled as such. |
+| **Get Directions** | To the responder-supplied facility if there is one, otherwise to the coarse point, otherwise absent. Never to a guess. |
+| **Who** | Responder-supplied name and callback number, shown **only when provided**, under a heading that says they are unverified. A tap-to-call on the callback number is the single most useful control on this screen. |
+| **Share fuller records** | The record-sharing grant. See below — it is the highest-risk control in the app. |
+| **Map** | Centred on whatever location we actually have. Absent if we have none. |
+| **Report false call** | One tap. See below. |
+
+### The banner must not claim a protocol
+
+The reference reads *"Soham's emergency protocol is triggered."* **Rejected.**
+TDC does not run a protocol and does not trigger anything — a stranger tapped a
+card and a page rendered. The banner states the event: **the card was scanned,
+when, and where if known.** Anything more implies the app is coordinating a
+medical response it has no part in.
+
+### Responder-supplied context — optional, unverified, never blocking
+
+Fastlane serves an **unauthenticated public page**. We do not know who scanned
+the card, which facility they are in, or who is treating the patient. The
+reference showed all three as fact; they are only available if the responder
+volunteers them.
+
+So the responder page gains **optional** fields — facility, responder name,
+callback number — with three hard rules:
+
+1. **They MUST NOT gate or delay the medical information.** Blood group,
+   allergies, conditions, meds and contacts render first, always. A responder
+   who fills in nothing sees exactly what they see today. Principle I is not
+   negotiable for a data-collection convenience.
+2. **Everything supplied is displayed to family as unverified**, attributed to
+   the responder. *"Reported by the person who scanned the card."*
+3. **They are not trusted as input.** Free text rendered to a family member is
+   an injection and social-engineering surface: escaped on render, length-capped,
+   no links made clickable except a validated phone number, and stored on the
+   `scan_event` — never used to look up or auto-associate a real facility.
+
+### Share fuller records — the reframe, and why
+
+The reference's **"Medical Consent Required → Provide E-Consent Now"** is not
+built. It presented treatment authorization: *"the hospital requires immediate
+authorization to proceed with life-saving emergency protocols."* Three reasons,
+recorded so this does not get re-proposed:
+
+1. **It is false, and dangerously so.** Clinicians treat under emergency
+   doctrine when a patient cannot consent; no hospital waits on an app. A
+   screen implying treatment is blocked on a family member's tap tells someone
+   whose parent is in an emergency ward that the delay is theirs. If they are
+   asleep or out of signal, the app has lied at the worst possible moment.
+2. **Principle II (NON-NEGOTIABLE)** — no screen may make a card tap the moment
+   consent is asked for. A scan that raises a consent prompt is card-tap-as-
+   consent by another route.
+3. **TDC cannot broker it.** `caregiver_grants` governs *seeing records*.
+   Authorizing a procedure is a legal act between the patient or next-of-kin
+   and the clinician, and putting a button on it misrepresents what the button
+   does.
+
+**What replaces it is a real feature and fits the existing consent model:** the
+responder has seen the emergency card and may need more — past discharges, the
+full medication history, prior labs. That is **data access**, which is exactly
+what TDC's consent model governs, and the family member grants it deliberately
+in-app rather than by anyone tapping anything.
+
+**It widens a public bearer URL, so it is bounded hard:**
+
+- **Explicit, never pre-checked, never automatic.** One tap, one confirmation
+  naming what is being shared and with whom.
+- **Time-boxed and short** — default **6 hours**, shown as a countdown on this
+  screen and in the card manager.
+- **Revocable in one tap**, from this screen and from Screen 10, with the same
+  one-toggle pattern card revocation already uses.
+- **Logged** — an `access_logs` row on the grant, on every expanded read, and
+  on revocation (Principle XI).
+- **Scoped to this scan event**, not to the card in general. A later scan does
+  not inherit it.
+- **The expanded payload is a superset of the emergency payload**, assembled
+  the same way and from the same source (Principle IX — no parallel template).
+- **Open question, flagged not answered:** the emergency URL is a bearer token,
+  so expanding what it serves also expands what a screenshot of it serves. The
+  safer construction is a **separate short-lived single-use link sent to the
+  responder's supplied callback number**, which requires a callback number to
+  exist. Owner: Adi. This must be settled before the grant is built — it is
+  the difference between sharing a history with a clinician and publishing it.
+
+### Report false call
+
+**Adopted wholesale — the reference has something the spec was missing.** `007`
+had revocation but nothing that says *"this scan was not legitimate."*
+
+One tap, and it does three things: flags the `scan_event`, offers card
+revocation immediately in the same sheet (the correct response to a card in the
+wrong hands), and **immediately ends any active record-sharing grant** for that
+scan. It also stops further alerts for that event so a frightened family member
+is not re-notified about something they have already judged.
+
+It is deliberately the last element on the screen and never a primary action —
+a real emergency must not compete with a fraud report — but it is always
+present, because the abuse case this app enables is a stranger scanning a card
+to harvest a family's data, and the family needs somewhere to say so.
+
+---
+
 ## Requirements
 
 ### Functional Requirements
@@ -173,6 +285,39 @@ The consent ledger, per `001` FR-003/004:
 - **FR-009**: The Family & consent screen MUST show every grant with its
   timestamp in plain language, keep revoked grants visible as history, and
   visually distinguish managed profiles from QR-joined linked members.
+**Emergency Alert (Screen 13, added 9 Sep 2026)**
+
+- **FR-011**: The family blast (`001` FR-014) MUST deep-link to the Emergency
+  Alert screen for that `scan_event`, not to the card manager. It MUST render
+  from the scan event, and MUST NOT require the card manager to load first.
+- **FR-012**: The banner MUST state the event — the card was scanned, when,
+  and where if known. It MUST NOT describe a protocol, a triggered response, or
+  any coordination TDC does not perform.
+- **FR-013**: Facility, responder name and callback number are **optional
+  responder-supplied** values. They MUST be displayed as unverified and
+  attributed to the person who scanned the card, MUST be escaped on render and
+  length-capped, MUST NOT be used to look up or auto-associate a real facility,
+  and only a validated phone number may be made tappable.
+- **FR-014**: Collecting responder-supplied context MUST NOT gate, delay, or
+  reorder the medical information on the responder page. Blood group,
+  allergies, conditions, meds and contacts render first, always (Principle I).
+- **FR-015**: The app MUST NOT present, request, or imply **treatment
+  authorization**. No screen may state that a clinician is awaiting a family
+  member's approval to proceed. Emergency treatment does not wait on this app,
+  and saying otherwise is both false and harmful (Principle VI).
+- **FR-016**: A record-sharing grant MUST be explicit and never pre-checked,
+  MUST be time-boxed (default 6 hours) with the remaining time visible, MUST be
+  revocable in one tap from both Screen 13 and Screen 10, MUST be scoped to the
+  originating `scan_event` rather than to the card, and MUST write an
+  `access_logs` row on grant, on every expanded read, and on revocation.
+- **FR-017**: The expanded payload MUST be assembled from the same source as
+  the emergency payload — a superset, never a second hand-maintained view
+  (Principle IX).
+- **FR-018**: The Emergency Alert screen MUST offer **Report false call**,
+  which flags the scan event, offers card revocation in the same sheet,
+  immediately ends any active record-sharing grant for that scan, and stops
+  further alerts for that event. It MUST NOT be a primary action.
+
 - **FR-010**: No copy on these three screens may describe a card tap as
   consent/permission/approval; all copy comes from the approved list.
 

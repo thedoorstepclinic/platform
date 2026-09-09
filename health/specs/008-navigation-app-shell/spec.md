@@ -80,6 +80,7 @@ ShellRoute (authenticated app shell — persistent header, no tab bar)
     ├── /meds/slot/:time            #     Dose-occasion checklist — sheet (006)
     ├── /emergency                  # S9 Emergency editor + preview (007)
     ├── /card                       # S10 Card manager + scan log (007)
+    ├── /alert/:scanEventId         # S13 Emergency Alert — family blast target (007)
     ├── /book                       # B1 Find care: search + specialty + clinic list (012)
     ├── /book/:clinicId             # B2 Clinic page + fee line (012)
     ├── /book/:clinicId/doctors     # B3 Choose doctor — sheet (012)
@@ -130,8 +131,8 @@ screen — deep links are how that's met):
 | Dose-slot reminder (`006`) | `/profile/[id]/meds/slot/[time]` | Straight into the bundled checklist |
 | Low-stock alert | `/profile/[id]/meds` | Stock bar visible on landing |
 | Missed-dose nudge | `/profile/[id]/meds/slot/[time]` | Same checklist, past slot |
-| Family blast — card scanned (`001` FR-014) | `/profile/[id]/card` | Scan log, newest entry visible |
-| Test-scan blast (`007`) | `/profile/[id]/card` | Same target, entry carries Test chip |
+| Family blast — card scanned (`001` FR-014) | `/profile/[id]/alert/[scanEventId]` | **Changed 9 Sep 2026** — was the card manager's scan log, a maintenance screen. Now the Emergency Alert screen (`007` S13, FR-011): what happened, where if known, who if the responder said, and one tap to call them |
+| Test-scan blast (`007`) | `/profile/[id]/alert/[scanEventId]` | Same screen, banner and entry carry the Test label — a test must exercise the real path (`007` FR-005) |
 | ABDM record arrived (`003`, gated on ABDM certification) | `/profile/[id]` | Timeline, new record on top |
 | Upcoming appointment (alerts strip, `012`) | `/profile/[id]/appointment/[apptId]` | Queue view visible on landing |
 | Appointment reminder T−24h (`012`) | `/profile/[id]/appointment/[apptId]` | Queue block absent — it appears only on the day |
